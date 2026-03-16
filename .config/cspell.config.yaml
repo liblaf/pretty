@@ -19,7 +19,6 @@ words:
   - cupy
   - direnv
   - fieldz
-  - functools
   - getattr
   - hynek
   - inlinehilite
@@ -41,13 +40,10 @@ words:
   - pyrightconfig
   - pytest
   - pyvista
-  - repr
-  - reprlib
   - sdist
   - tombi
   - trimesh
   - unshallow
+  - uuidgen
   - venv
   - virtualenv
-  - wadler
-  - wcwidth
