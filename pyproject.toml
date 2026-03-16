@@ -26,12 +26,11 @@ classifiers = [
   "Typing :: Typed"
 ]
 dependencies = [
-  "attrs>=25.4.0,<26.0.0",
-  "cupy-cuda13x>=14.0.1,<15.0.0",
-  "environs>=14.6.0,<15.0.0",
-  "lazy-loader>=0.4,<0.5",
-  "rich>=14.3.3,<15.0.0",
-  "wcwidth>=0.6.0,<0.7.0"
+  "attrs>=25,<26",
+  "environs>=14,<15",
+  "fieldz>=0.2,<0.3",
+  "lazy-loader>=0.5,<0.6",
+  "rich>=14,<15"
 ]
 dynamic = ["version"]
 
@@ -47,10 +46,11 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-  "jax>=0.9.1,<0.10.0",
-  "numpy>=2.4.3,<3.0.0",
-  "torch>=2.10.0,<3.0.0",
-  "warp-lang>=1.12.0,<2.0.0"
+  "cupy-cuda13x>=14,<15",
+  "jax>=0.9,<0.10",
+  "numpy>=2,<3",
+  "torch>=2,<3",
+  "warp-lang>=1,<2"
 ]
 build = ["check-wheel-contents>=0.6,<0.7", "hatch>=1,<2", "twine>=6,<7"]
 docs = ["liblaf-mkdocs-preset>=0.3,<0.4", "mkdocs>=1,<2"]

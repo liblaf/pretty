@@ -942,14 +942,14 @@ wheels = [
 
 [[package]]
 name = "lazy-loader"
-version = "0.4"
+version = "0.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6f/6b/c875b30a1ba490860c93da4cabf479e03f584eba06fe5963f6f6644653d8/lazy_loader-0.4.tar.gz", hash = "sha256:47c75182589b91a4e1a85a136c074285a5ad4d9f39c63e0d7fb76391c4574cd1", size = 15431, upload-time = "2024-04-05T13:03:12.261Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/49/ac/21a1f8aa3777f5658576777ea76bfb124b702c520bbe90edf4ae9915eafa/lazy_loader-0.5.tar.gz", hash = "sha256:717f9179a0dbed357012ddad50a5ad3d5e4d9a0b8712680d4e687f5e6e6ed9b3", size = 15294, upload-time = "2026-03-06T15:45:09.054Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/60/d497a310bde3f01cb805196ac61b7ad6dc5dcf8dce66634dc34364b20b4f/lazy_loader-0.4-py3-none-any.whl", hash = "sha256:342aa8e14d543a154047afb4ba8ef17f5563baad3fc610d7b15b213b0f119efc", size = 12097, upload-time = "2024-04-05T13:03:10.514Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/a1/8d812e53a5da1687abb10445275d41a8b13adb781bbf7196ddbcf8d88505/lazy_loader-0.5-py3-none-any.whl", hash = "sha256:ab0ea149e9c554d4ffeeb21105ac60bed7f3b4fd69b1d2360a4add51b170b005", size = 8044, upload-time = "2026-03-06T15:45:07.668Z" },
 ]
 
 [[package]]
@@ -984,11 +984,10 @@ name = "liblaf-pretty"
 source = { editable = "." }
 dependencies = [
     { name = "attrs" },
-    { name = "cupy-cuda13x" },
     { name = "environs" },
+    { name = "fieldz" },
     { name = "lazy-loader" },
     { name = "rich" },
-    { name = "wcwidth" },
 ]
 
 [package.dev-dependencies]
@@ -998,6 +997,7 @@ build = [
     { name = "twine" },
 ]
 dev = [
+    { name = "cupy-cuda13x" },
     { name = "jax" },
     { name = "numpy" },
     { name = "torch" },
@@ -1014,12 +1014,11 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "attrs", specifier = ">=25.4.0,<26.0.0" },
-    { name = "cupy-cuda13x", specifier = ">=14.0.1,<15.0.0" },
-    { name = "environs", specifier = ">=14.6.0,<15.0.0" },
-    { name = "lazy-loader", specifier = ">=0.4,<0.5" },
-    { name = "rich", specifier = ">=14.3.3,<15.0.0" },
-    { name = "wcwidth", specifier = ">=0.6.0,<0.7.0" },
+    { name = "attrs", specifier = ">=25,<26" },
+    { name = "environs", specifier = ">=14,<15" },
+    { name = "fieldz", specifier = ">=0.2,<0.3" },
+    { name = "lazy-loader", specifier = ">=0.5,<0.6" },
+    { name = "rich", specifier = ">=14,<15" },
 ]
 
 [package.metadata.requires-dev]
@@ -1029,10 +1028,11 @@ build = [
     { name = "twine", specifier = ">=6,<7" },
 ]
 dev = [
-    { name = "jax", specifier = ">=0.9.1,<0.10.0" },
-    { name = "numpy", specifier = ">=2.4.3,<3.0.0" },
-    { name = "torch", specifier = ">=2.10.0,<3.0.0" },
-    { name = "warp-lang", specifier = ">=1.12.0,<2.0.0" },
+    { name = "cupy-cuda13x", specifier = ">=14,<15" },
+    { name = "jax", specifier = ">=0.9,<0.10" },
+    { name = "numpy", specifier = ">=2,<3" },
+    { name = "torch", specifier = ">=2,<3" },
+    { name = "warp-lang", specifier = ">=1,<2" },
 ]
 docs = [
     { name = "liblaf-mkdocs-preset", specifier = ">=0.3,<0.4" },
@@ -2623,15 +2623,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/79/3e/c0bdc27cf06f4e47680bd5803a07cb3dfd17de84cde92dd217dcb9e05253/wcmatch-10.1.tar.gz", hash = "sha256:f11f94208c8c8484a16f4f48638a85d771d9513f4ab3f37595978801cb9465af", size = 117421, upload-time = "2025-06-22T19:14:02.49Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/d8/0d1d2e9d3fabcf5d6840362adcf05f8cf3cd06a73358140c3a97189238ae/wcmatch-10.1-py3-none-any.whl", hash = "sha256:5848ace7dbb0476e5e55ab63c6bbd529745089343427caa5537f230cc01beb8a", size = 39854, upload-time = "2025-06-22T19:14:00.978Z" },
-]
-
-[[package]]
-name = "wcwidth"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/35/a2/8e3becb46433538a38726c948d3399905a4c7cabd0df578ede5dc51f0ec2/wcwidth-0.6.0.tar.gz", hash = "sha256:cdc4e4262d6ef9a1a57e018384cbeb1208d8abbc64176027e2c2455c81313159", size = 159684, upload-time = "2026-02-06T19:19:40.919Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/5a/199c59e0a824a3db2b89c5d2dade7ab5f9624dbf6448dc291b46d5ec94d3/wcwidth-0.6.0-py3-none-any.whl", hash = "sha256:1a3a1e510b553315f8e146c54764f4fb6264ffad731b3d78088cdb1478ffbdad", size = 94189, upload-time = "2026-02-06T19:19:39.646Z" },
 ]
 
 [[package]]
