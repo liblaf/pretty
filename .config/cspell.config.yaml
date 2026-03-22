@@ -43,7 +43,7 @@ words:
   - sdist
   - tombi
   - trimesh
-  - unshallow
   - uuidgen
   - venv
   - virtualenv
+  - xdist

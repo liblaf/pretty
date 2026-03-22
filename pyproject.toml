@@ -26,11 +26,11 @@ classifiers = [
   "Typing :: Typed"
 ]
 dependencies = [
-  "attrs>=25,<26",
-  "environs>=14,<15",
-  "fieldz>=0.2,<0.3",
-  "lazy-loader>=0.5,<0.6",
-  "rich>=14,<15"
+  "attrs>=25",
+  "environs>=14.1",
+  "fieldz>=0.1",
+  "lazy-loader>=0.1",
+  "rich>=14.3"
 ]
 dynamic = ["version"]
 
@@ -45,16 +45,18 @@ dynamic = ["version"]
 "Source Code" = "https://github.com/liblaf/pretty"
 
 [dependency-groups]
-dev = [
-  "cupy-cuda13x>=14,<15",
-  "jax>=0.9,<0.10",
-  "numpy>=2,<3",
-  "torch>=2,<3",
-  "warp-lang>=1,<2"
+dev = ["cupy-cuda13x>=14", "jax>=0.9", "numpy>=2", "torch>=2", "warp-lang>=1"]
+build = ["check-wheel-contents>=0.6", "hatch>=1", "twine>=6"]
+docs = ["liblaf-mkdocs-preset>=0.3", "mkdocs>=1,<2"]
+nox = ["liblaf-nox-recipes>=0.1", "nox>=2026", "nox-uv>=0.7"]
+test = [
+  "pytest>=9",
+  "pytest-codspeed>=4",
+  "pytest-cov>=7",
+  "pytest-randomly>=4",
+  "pytest-xdist>=3",
+  { include-group = "dev" }
 ]
-build = ["check-wheel-contents>=0.6,<0.7", "hatch>=1,<2", "twine>=6,<7"]
-docs = ["liblaf-mkdocs-preset>=0.3,<0.4", "mkdocs>=1,<2"]
-test = ["liblaf-pytest-preset>=0.1,<0.2", "pytest>=9,<10"]
 
 [build-system]
 requires = ["hatch-vcs", "hatchling"]
@@ -85,8 +87,8 @@ extends = ".config/linters/pyrightconfig.json"
 [tool.pytest]
 addopts = [
   "--doctest-modules",
-  "--hypothesis-explain",
   "--import-mode=importlib",
+  "--numprocesses=auto",
   "--showlocals"
 ]
 consider_namespace_packages = true
@@ -95,6 +97,9 @@ testpaths = ["benches", "src", "tests"]
 
 [tool.ruff]
 extend = ".config/linters/.ruff.toml"
+
+[tool.ty.environment]
+python = ".venv"
 
 [tool.uv]
 default-groups = "all"
