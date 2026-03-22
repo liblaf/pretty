@@ -16,7 +16,7 @@ class ItemValue(Item):
 
     @functools.cached_property
     @override
-    def width_flat(self) -> int | float:
+    def width_inline(self) -> int | float:
         if self.value.annotation:
             return math.inf
         return self.prefix.cell_len + self.value.width_flat + self.suffix.cell_len

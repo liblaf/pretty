@@ -19,7 +19,7 @@ class ItemKeyValue(Item):
 
     @functools.cached_property
     @override
-    def width_flat(self) -> int | float:
+    def width_inline(self) -> int | float:
         if self.key.annotation or self.value.annotation:
             return math.inf
         return (

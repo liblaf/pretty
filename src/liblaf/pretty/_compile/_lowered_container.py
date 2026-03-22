@@ -34,7 +34,7 @@ class LoweredContainer(Lowered):
     def width_flat(self) -> int | float:
         return (
             self.begin.cell_len
-            + sum(item.width_flat for item in self.items)
+            + sum(item.width_inline for item in self.items)
             + self.end.cell_len
         )
 

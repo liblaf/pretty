@@ -16,7 +16,7 @@ class Item(abc.ABC):
 
     @functools.cached_property
     @abc.abstractmethod
-    def width_flat(self) -> int | float:
+    def width_inline(self) -> int | float:
         raise NotImplementedError
 
     @abc.abstractmethod
