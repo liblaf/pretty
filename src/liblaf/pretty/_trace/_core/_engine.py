@@ -9,7 +9,8 @@ from ..._prelude import PrettyBuilder
 from .._registry import PrettyRegistry, registry
 from ._describe import describe, make_node
 from ._expand import expand_occurrence, truncate_container
-from ._models import TraceResult, TracedContainerNode, TracedNode, TracedOccurrence
+from ._nodes import TracedContainerNode, TracedNode
+from ._occurrence import TraceResult, TracedOccurrence
 
 
 @attrs.define

@@ -5,8 +5,8 @@ import attrs
 from rich.highlighter import Highlighter, ReprHighlighter
 from rich.text import Text
 
-from .._api._config import PrettyOptions
-from .._api._text import has_ansi
+from ..._api._config import PrettyOptions
+from ..._api._text import has_ansi
 from ._common import PrettyChild, copy_text
 from ._items import EntryItemSpec, FieldItemSpec, ItemSpec, ValueItemSpec
 from ._specs import ContainerSpec, LeafSpec, LiteralSpec, PrettySpec

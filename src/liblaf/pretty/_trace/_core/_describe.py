@@ -1,7 +1,7 @@
-from ..._prelude import ContainerSpec, LeafSpec, LiteralSpec, PrettyBuilder, PrettySpec
+from ..._prelude import PrettyBuilder, PrettySpec
 from .._registry import PrettyRegistry
 from .._repr import trace_repr
-from ._models import TracedContainerNode, TracedLeafNode, TracedNode
+from ._nodes import TracedNode
 
 
 def describe(
@@ -20,27 +20,4 @@ def describe(
 
 
 def make_node(obj: object, spec: PrettySpec) -> TracedNode:
-    obj_id: int = id(obj)
-    cls: type = type(obj)
-    match spec:
-        case LiteralSpec(value=value):
-            return TracedLeafNode(obj_id=obj_id, cls=cls, referable=False, value=value)
-        case LeafSpec(value=value, referable=referable):
-            return TracedLeafNode(
-                obj_id=obj_id, cls=cls, referable=referable, value=value
-            )
-        case ContainerSpec() as container:
-            return TracedContainerNode(
-                obj_id=obj_id,
-                cls=cls,
-                referable=container.referable,
-                open_brace=container.open_brace,
-                close_brace=container.close_brace,
-                empty_open_brace=container.empty_open_brace,
-                empty_close_brace=container.empty_close_brace,
-                show_type_name=container.show_type_name,
-                trailing_comma_single=container.trailing_comma_single,
-                source_items=container.items,
-            )
-        case _:
-            raise TypeError(spec)
+    return spec.make_node(obj_id=id(obj), cls=type(obj))

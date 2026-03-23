@@ -9,7 +9,7 @@ from typing import Any, Protocol, overload
 
 import attrs
 
-from liblaf.pretty._prelude import PrettyBuilder, PrettySpec
+from .._prelude import PrettyBuilder, PrettySpec
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class PrettyRegistry:
         return None
 
     def _resolve_lazy(self) -> None:
-        from . import _builtin  # noqa: F401
+        from .._prelude import _builtin  # noqa: F401
 
         for (module_name, typename), handler in list(self.handlers_lazy.items()):
             module: types.ModuleType | None = sys.modules.get(module_name)

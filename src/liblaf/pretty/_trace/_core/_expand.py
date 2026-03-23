@@ -1,16 +1,9 @@
 from collections.abc import Callable
 
-from ..._prelude import EntryItemSpec, FieldItemSpec, LiteralSpec, PrettyBuilder, ValueItemSpec
-from ._models import (
-    TracedChild,
-    TracedContainerNode,
-    TracedEntryItem,
-    TracedFieldItem,
-    TracedItem,
-    TracedLiteral,
-    TracedOccurrence,
-    TracedValueItem,
-)
+from ..._prelude import ItemSpec, LiteralSpec, PrettyBuilder
+from ._items import LowerableChild, TracedItem, TracedValueItem
+from ._nodes import TracedContainerNode
+from ._occurrence import TracedOccurrence
 
 
 def expand_occurrence(
@@ -32,67 +25,20 @@ def expand_occurrence(
         trailing_comma: bool = item_index < item_count - 1 or (
             node.trailing_comma_single and item_count == 1
         )
-        match item_spec:
-            case ValueItemSpec(child=child):
-                traced_child, slot_index = trace_child(
-                    child,
-                    depth=child_depth,
-                    path_prefix=occurrence.path,
-                    slot_index=slot_index,
-                    ancestors=ancestors,
-                    discover=discover,
-                )
-                traced_items.append(
-                    TracedValueItem(
-                        traced_child,
-                        prefix_break=prefix_break,
-                        trailing_comma=trailing_comma,
-                    )
-                )
-            case EntryItemSpec(key=key, value=value):
-                traced_key, slot_index = trace_child(
-                    key,
-                    depth=child_depth,
-                    path_prefix=occurrence.path,
-                    slot_index=slot_index,
-                    ancestors=ancestors,
-                    discover=discover,
-                )
-                traced_value, slot_index = trace_child(
-                    value,
-                    depth=child_depth,
-                    path_prefix=occurrence.path,
-                    slot_index=slot_index,
-                    ancestors=ancestors,
-                    discover=discover,
-                )
-                traced_items.append(
-                    TracedEntryItem(
-                        traced_key,
-                        traced_value,
-                        prefix_break=prefix_break,
-                        trailing_comma=trailing_comma,
-                    )
-                )
-            case FieldItemSpec(name=name, value=value):
-                traced_value, slot_index = trace_child(
-                    value,
-                    depth=child_depth,
-                    path_prefix=occurrence.path,
-                    slot_index=slot_index,
-                    ancestors=ancestors,
-                    discover=discover,
-                )
-                traced_items.append(
-                    TracedFieldItem(
-                        name=name,
-                        value=traced_value,
-                        prefix_break=prefix_break,
-                        trailing_comma=trailing_comma,
-                    )
-                )
-            case _:
-                raise TypeError(item_spec)
+        traced_item, slot_index = item_spec.trace_item(
+            prefix_break=prefix_break,
+            trailing_comma=trailing_comma,
+            slot_index=slot_index,
+            trace_child=lambda child, child_slot: trace_child(
+                child,
+                depth=child_depth,
+                path_prefix=occurrence.path,
+                slot_index=child_slot,
+                ancestors=ancestors,
+                discover=discover,
+            ),
+        )
+        traced_items.append(traced_item)
     node.items = tuple(traced_items)
     node.expanded = True
 
@@ -105,15 +51,13 @@ def trace_child(
     slot_index: int,
     ancestors: tuple[int, ...],
     discover: Callable[[object, int, tuple[int, ...], tuple[int, ...]], TracedOccurrence],
-) -> tuple[TracedChild, int]:
+) -> tuple[LowerableChild, int]:
     child_path: tuple[int, ...] = (*path_prefix, slot_index)
-    match child:
-        case LiteralSpec(value=value):
-            return TracedLiteral(value), slot_index + 1
-        case ValueItemSpec() | EntryItemSpec() | FieldItemSpec():
-            raise TypeError("only LiteralSpec may be used as a container child")
-        case _:
-            return discover(child, depth, child_path, ancestors), slot_index + 1
+    if isinstance(child, LiteralSpec):
+        return child.trace_child(), slot_index + 1
+    if isinstance(child, ItemSpec):
+        raise TypeError("only LiteralSpec may be used as a container child")
+    return discover(child, depth, child_path, ancestors), slot_index + 1
 
 
 def truncate_container(
@@ -121,4 +65,4 @@ def truncate_container(
 ) -> tuple[TracedItem, ...]:
     if not node.source_items:
         return ()
-    return (TracedValueItem(TracedLiteral(builder.ellipsis().value)),)
+    return (TracedValueItem(builder.ellipsis().trace_child()),)

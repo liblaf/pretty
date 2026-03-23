@@ -1,10 +1,15 @@
 import types
 
-from liblaf.pretty._prelude import LiteralSpec, PrettyBuilder
+from rich.text import Text
 
-from ._const import ELLIPSIS, FALSE, NONE, TRUE
-from .._registry import registry
-from .._repr import repr_text
+from .. import LiteralSpec, PrettyBuilder
+from ..._trace._registry import registry
+from ..._trace._repr import repr_text
+
+TRUE = LiteralSpec(Text("True", "repr.bool_true"))
+FALSE = LiteralSpec(Text("False", "repr.bool_false"))
+ELLIPSIS = LiteralSpec(Text("...", "repr.ellipsis"))
+NONE = LiteralSpec(Text("None", "repr.none"))
 
 
 @registry.register(bool)

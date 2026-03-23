@@ -77,23 +77,29 @@ class Writer:
     def _render(self, *renderables: Renderable) -> Segments:
         segments: list[Segment] = []
         for renderable in renderables:
-            match renderable:
-                case None:
-                    pass
-                case Segment():
-                    segments.append(renderable)
-                case Text():
-                    # hardcode these options for Text to render correctly
-                    renderable.overflow = "ignore"
-                    renderable.no_wrap = True
-                    renderable.end = ""
-                    segments.extend(
-                        self.console.render(renderable, options=self._options)
-                    )
-                case str(text):
-                    segments.append(Segment(text))
-                case renderable:
-                    segments.extend(
-                        self.console.render(renderable, options=self._options)
-                    )
+            segments.extend(self._render_one(renderable))
         return Segments(segments)
+
+    @functools.singledispatchmethod
+    def _render_one(self, renderable: object) -> list[Segment]:
+        return list(self.console.render(renderable, options=self._options))
+
+    @_render_one.register(type(None))
+    def _render_none(self, _renderable: None) -> list[Segment]:
+        return []
+
+    @_render_one.register(Segment)
+    def _render_segment(self, renderable: Segment) -> list[Segment]:
+        return [renderable]
+
+    @_render_one.register(Text)
+    def _render_text(self, renderable: Text) -> list[Segment]:
+        renderable = renderable.copy()
+        renderable.overflow = "ignore"
+        renderable.no_wrap = True
+        renderable.end = ""
+        return list(self.console.render(renderable, options=self._options))
+
+    @_render_one.register(str)
+    def _render_str(self, renderable: str) -> list[Segment]:
+        return [Segment(renderable)]
