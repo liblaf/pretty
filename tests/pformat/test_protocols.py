@@ -1,19 +1,37 @@
 import dataclasses
-from typing import Any
 
 from rich.repr import RichReprResult
-from rich.text import Text
 
-from liblaf.pretty import TracedLeaf, pformat
+from liblaf.pretty import PrettyBuilder, pformat
 
 
 class SupportsPretty:
-    def __liblaf_pretty__(self, _ctx: Any) -> TracedLeaf:
-        return TracedLeaf(Text("SUPPORTS_PRETTY"))
+    def __liblaf_pretty__(self, builder: PrettyBuilder):
+        return builder.leaf("SUPPORTS_PRETTY", referable=False)
 
 
 def test_pretty_protocol() -> None:
     assert pformat(SupportsPretty()) == "SUPPORTS_PRETTY\n"
+
+
+class MixedItems:
+    def __liblaf_pretty__(self, builder: PrettyBuilder):
+        return builder.object(
+            [
+                builder.value("leaf0"),
+                builder.value("leaf1"),
+                builder.entry("key1", "value1"),
+                builder.field("name2", "value2"),
+            ],
+            referable=False,
+        )
+
+
+def test_mixed_items() -> None:
+    assert (
+        pformat(MixedItems())
+        == "MixedItems('leaf0', 'leaf1', 'key1': 'value1', name2='value2')\n"
+    )
 
 
 class SupportsRichRepr:

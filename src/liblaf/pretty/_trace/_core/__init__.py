@@ -1,5 +1,5 @@
-from ._core import (
-    TraceEngine,
+from ._engine import TraceEngine, trace
+from ._models import (
     TraceResult,
     TracedContainerNode,
     TracedEntryItem,
@@ -9,13 +9,9 @@ from ._core import (
     TracedNode,
     TracedOccurrence,
     TracedValueItem,
-    trace,
 )
-from ._registry import PrettyAdapter, PrettyRegistry, registry
 
 __all__ = [
-    "PrettyAdapter",
-    "PrettyRegistry",
     "TraceEngine",
     "TraceResult",
     "TracedContainerNode",
@@ -26,6 +22,5 @@ __all__ = [
     "TracedNode",
     "TracedOccurrence",
     "TracedValueItem",
-    "registry",
     "trace",
 ]

@@ -1,92 +1,104 @@
-from collections.abc import Generator, Sequence
-from typing import override
+from typing import TYPE_CHECKING
 
-import attrs
 from rich.text import Text
 
-from liblaf.pretty._compile import (
-    BREAK,
-    COLON,
-    COMMA,
-    EQUAL,
-    INDENT,
-    Item,
-    ItemKeyValue,
-    ItemValue,
-    Lowered,
-    LoweredContainer,
-    LoweredLeaf,
+from .._compile import BREAK, COLON, COMMA, EMPTY, EQUAL, Item, ItemKeyValue, ItemValue
+from .._compile import Lowered, LoweredContainer, LoweredLeaf
+from .._trace import (
+    TracedContainerNode,
+    TracedEntryItem,
+    TracedFieldItem,
+    TracedLiteral,
+    TracedOccurrence,
+    TracedValueItem,
 )
 
-from ._base import LowerContext, Traced
-from ._reference import TracedReferent
-
-type TracedItem = Traced | tuple[str, Traced] | tuple[Traced, Traced]
+if TYPE_CHECKING:
+    from ._lowerer import Lowerer
 
 
-@attrs.define
-class TracedContainer(TracedReferent):
-    children: Sequence[TracedItem]
-
-    open_brace: str = attrs.field(kw_only=True)
-    close_brace: str = attrs.field(kw_only=True)
-
-    def _default_empty_open_brace(self) -> str:
-        return self.open_brace[0]
-
-    empty_open_brace: str = attrs.field(
-        default=attrs.Factory(_default_empty_open_brace, takes_self=True), kw_only=True
-    )
-
-    def _default_empty_close_brace(self) -> str:
-        return self.close_brace[-1]
-
-    empty_close_brace: str = attrs.field(
-        default=attrs.Factory(_default_empty_close_brace, takes_self=True), kw_only=True
-    )
-
-    space: Text = attrs.field(default=BREAK, kw_only=True)
-    comma: Text = attrs.field(default=COMMA, kw_only=True)
-    indent: Text = attrs.field(default=INDENT, kw_only=True)
-    force_comma_if_single: bool = attrs.field(default=False, kw_only=True)
-
-    @override
-    def lower_referent(self, ctx: LowerContext) -> Lowered:
-        items: list[Item] = list(self.lower_items(ctx))
-        if not items:
-            return LoweredLeaf(
-                Text.assemble(
-                    (ctx.typenames[self.cls], "repr.tag_name"),
-                    (self.empty_open_brace, "repr.tag_start"),
-                    (self.empty_close_brace, "repr.tag_end"),
-                )
+def lower_container(
+    lowerer: "Lowerer",
+    node: TracedContainerNode,
+    *,
+    inline_repeat: bool,
+    ancestors: tuple[int, ...],
+) -> Lowered:
+    if not node.items:
+        return LoweredLeaf(
+            Text.assemble(
+                *type_name_segment(lowerer, node),
+                (node.empty_open_brace, "repr.tag_start"),
+                (node.empty_close_brace, "repr.tag_end"),
             )
-        begin: Text = Text.assemble(
-            (ctx.typenames[self.cls], "repr.tag_name"),
-            (self.open_brace, "repr.tag_start"),
         )
-        end: Text = Text(self.close_brace, "repr.tag_end")
-        for i, item in enumerate(items):
-            if i > 0:
-                item.prefix = self.space
-            if i < len(items) - 1 or (self.force_comma_if_single and len(items) == 1):
-                item.suffix = self.comma
-        return LoweredContainer(begin=begin, end=end, items=items, indent=self.indent)
-
-    def lower_items(self, ctx: LowerContext) -> Generator[Item]:
-        for child in self.children:
-            match child:
-                case Traced():
-                    yield ItemValue(child.lower(ctx))
-                case (str() as name, Traced() as value):
-                    yield ItemKeyValue(
+    child_ancestors: tuple[int, ...] = (*ancestors, node.obj_id)
+    items: list[Item] = []
+    for item in node.items:
+        prefix: Text = BREAK if item.prefix_break else EMPTY
+        suffix: Text = COMMA if item.trailing_comma else EMPTY
+        match item:
+            case TracedValueItem(child=child):
+                items.append(
+                    ItemValue(
+                        lower_child(lowerer, child, inline_repeat, child_ancestors),
+                        prefix=prefix,
+                        suffix=suffix,
+                    )
+                )
+            case TracedEntryItem(key=key, value=value):
+                items.append(
+                    ItemKeyValue(
+                        key=lower_child(lowerer, key, inline_repeat, child_ancestors),
+                        value=lower_child(
+                            lowerer, value, inline_repeat, child_ancestors
+                        ),
+                        sep=COLON,
+                        prefix=prefix,
+                        suffix=suffix,
+                    )
+                )
+            case TracedFieldItem(name=name, value=value):
+                items.append(
+                    ItemKeyValue(
                         key=LoweredLeaf(Text(name, "repr.attrib_name")),
-                        value=value.lower(ctx),
+                        value=lower_child(
+                            lowerer, value, inline_repeat, child_ancestors
+                        ),
                         sep=EQUAL,
+                        prefix=prefix,
+                        suffix=suffix,
                     )
-                case (Traced() as key, Traced() as value):
-                    yield ItemKeyValue(
-                        key=key.lower(ctx), value=value.lower(ctx), sep=COLON
-                    )
-                case _:
-                    raise ValueError(child)
+                )
+            case _:
+                raise TypeError(item)
+    begin: Text = Text.assemble(
+        *type_name_segment(lowerer, node), (node.open_brace, "repr.tag_start")
+    )
+    end: Text = Text(node.close_brace, "repr.tag_end")
+    return LoweredContainer(begin=begin, end=end, items=items, indent=lowerer.ctx.indent)
+
+
+def lower_child(
+    lowerer: "Lowerer",
+    child: TracedLiteral | TracedOccurrence,
+    inline_repeat: bool,
+    ancestors: tuple[int, ...],
+) -> Lowered:
+    match child:
+        case TracedLiteral(value=value):
+            return LoweredLeaf(value.copy())
+        case TracedOccurrence():
+            return lowerer.lower_occurrence(
+                child, inline_repeat=inline_repeat, ancestors=ancestors
+            )
+        case _:
+            raise TypeError(child)
+
+
+def type_name_segment(
+    lowerer: "Lowerer", node: TracedContainerNode
+) -> tuple[tuple[str, str], ...]:
+    if not node.show_type_name:
+        return ()
+    return ((lowerer.ctx.typenames[node.cls], "repr.tag_name"),)

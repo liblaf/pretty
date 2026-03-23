@@ -9,89 +9,84 @@ from typing import Any, Protocol, overload
 
 import attrs
 
-from liblaf.pretty._lower import Traced
-
-from ._base import TraceContext
+from liblaf.pretty._prelude import PrettyBuilder, PrettySpec
 
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class TraceHandler[T](Protocol):
-    def __call__(self, obj: T, ctx: TraceContext, /) -> Traced | None: ...
+class PrettyAdapter[T](Protocol):
+    def __call__(self, obj: T, builder: PrettyBuilder, /) -> PrettySpec | None: ...
 
 
-def _default_dispatcher() -> functools._SingleDispatchCallable[Traced | None]:
+def _default_dispatcher() -> functools._SingleDispatchCallable[PrettySpec | None]:
     @functools.singledispatch
-    def dispatcher(_obj: Any, _ctx: TraceContext) -> Traced | None:
+    def dispatcher(_obj: Any, _builder: PrettyBuilder) -> PrettySpec | None:
         return None
 
     return dispatcher
 
 
 @attrs.define
-class TraceRegistry:
-    dispatcher: functools._SingleDispatchCallable[Traced | None] = attrs.field(
+class PrettyRegistry:
+    dispatcher: functools._SingleDispatchCallable[PrettySpec | None] = attrs.field(
         factory=_default_dispatcher
     )
-    handlers: list[TraceHandler[Any]] = attrs.field(factory=list)
-    handlers_lazy: dict[tuple[str, str], TraceHandler[Any]] = attrs.field(factory=dict)
+    fallbacks: list[PrettyAdapter[Any]] = attrs.field(factory=list)
+    handlers_lazy: dict[tuple[str, str], PrettyAdapter[Any]] = attrs.field(factory=dict)
 
-    def __call__(self, obj: Any, ctx: TraceContext) -> Traced:
-        from ._repr import trace_repr
+    @functools.cached_property
+    def _default_handler(self) -> PrettyAdapter[Any]:
+        return self.dispatcher.dispatch(object)
 
+    def resolve(self, obj: Any) -> PrettyAdapter[Any] | None:
         self._resolve_lazy()
-        if hasattr(obj, "__liblaf_pretty__"):
-            result: Traced | None = obj.__liblaf_pretty__(ctx)
-            if result is not None:
-                return result
-        result: Traced | None = self.dispatcher(obj, ctx)
-        if result is not None:
-            return result
-        for handler in reversed(self.handlers):
-            result: Traced | None = handler(obj, ctx)
-            if result is not None:
-                return result
-        return trace_repr(obj, ctx)
+        handler: PrettyAdapter[Any] = self.dispatcher.dispatch(type(obj))
+        if handler is not self._default_handler:
+            return handler
+        if self.fallbacks:
+            return self._run_fallbacks
+        return None
 
     @overload
-    def register[F: TraceHandler[Any]](self, cls: type, handler: F) -> F: ...
+    def register[F: PrettyAdapter[Any]](self, cls: type, handler: F) -> F: ...
     @overload
-    def register[F: TraceHandler[Any]](
+    def register[F: PrettyAdapter[Any]](
         self, cls: type, handler: None = None
     ) -> Callable[[F], F]: ...
     def register(
-        self, cls: type, handler: TraceHandler[Any] | None = None
+        self, cls: type, handler: PrettyAdapter[Any] | None = None
     ) -> Callable[..., Any]:
         return self.dispatcher.register(cls, handler)
 
-    def register_func[F: TraceHandler[Any]](self, handler: F) -> F:
-        self.handlers.append(handler)
+    def register_fallback[F: PrettyAdapter[Any]](self, handler: F) -> F:
+        self.fallbacks.append(handler)
         return handler
 
     @overload
-    def register_lazy[F: TraceHandler[Any]](
+    def register_lazy[F: PrettyAdapter[Any]](
         self, module: str, typename: str, handler: F
     ) -> F: ...
     @overload
-    def register_lazy[F: TraceHandler[Any]](
+    def register_lazy[F: PrettyAdapter[Any]](
         self, module: str, typename: str, handler: None = None
     ) -> Callable[[F], F]: ...
     def register_lazy(
-        self, module: str, typename: str, handler: TraceHandler[Any] | None = None
+        self, module: str, typename: str, handler: PrettyAdapter[Any] | None = None
     ) -> Callable[..., Any]:
         if handler is None:
             return functools.partial(self.register_lazy, module, typename)
         self.handlers_lazy[(module, typename)] = handler
         return handler
 
+    def _run_fallbacks(self, obj: Any, builder: PrettyBuilder) -> PrettySpec | None:
+        for handler in reversed(self.fallbacks):
+            result: PrettySpec | None = handler(obj, builder)
+            if result is not None:
+                return result
+        return None
+
     def _resolve_lazy(self) -> None:
-        from . import (  # noqa: F401
-            _array,
-            _builtin_containers,
-            _builtin_scalars,
-            _fieldz,
-            _rich_repr,
-        )
+        from . import _builtin  # noqa: F401
 
         for (module_name, typename), handler in list(self.handlers_lazy.items()):
             module: types.ModuleType | None = sys.modules.get(module_name)
@@ -106,4 +101,4 @@ class TraceRegistry:
                 del self.handlers_lazy[(module_name, typename)]
 
 
-trace: TraceRegistry = TraceRegistry()
+registry: PrettyRegistry = PrettyRegistry()
