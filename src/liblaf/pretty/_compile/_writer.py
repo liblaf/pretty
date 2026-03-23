@@ -1,6 +1,7 @@
 import contextlib
 import functools
 from collections.abc import Generator
+from typing import cast
 
 import attrs
 import rich.segment
@@ -82,7 +83,8 @@ class Writer:
 
     @functools.singledispatchmethod
     def _render_one(self, renderable: object) -> list[Segment]:
-        return list(self.console.render(renderable, options=self._options))
+        rich_renderable = cast("RenderableType", renderable)
+        return list(self.console.render(rich_renderable, options=self._options))
 
     @_render_one.register(type(None))
     def _render_none(self, _renderable: None) -> list[Segment]:

@@ -1,5 +1,4 @@
-import liblaf.pretty as pretty
-
+from liblaf import pretty
 from liblaf.pretty import PrettyDoc, PrettyOptions, config, pdoc
 
 

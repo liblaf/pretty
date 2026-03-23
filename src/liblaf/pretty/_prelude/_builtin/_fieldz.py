@@ -3,9 +3,9 @@ from typing import Any
 
 import fieldz
 
-from .. import ContainerSpec, PrettyBuilder
+from liblaf.pretty._prelude import ContainerSpec, PrettyBuilder
+from liblaf.pretty._trace._registry import registry
 
-from ..._trace._registry import registry
 from ._helpers import filter_fields
 
 

@@ -1,19 +1,30 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING
 
 import attrs
 from rich.text import Text
 
-from ..._compile import BREAK, COLON, COMMA, EMPTY, EQUAL
-from ..._compile import Item, ItemKeyValue, ItemValue, LoweredLeaf
+from liblaf.pretty._compile import (
+    BREAK,
+    COLON,
+    COMMA,
+    EMPTY,
+    EQUAL,
+    Item,
+    ItemKeyValue,
+    ItemValue,
+    LoweredLeaf,
+)
 
 if TYPE_CHECKING:
-    from ..._compile import Lowered
-    from ..._lower._lowerer import Lowerer
+    from liblaf.pretty._compile import Lowered
+    from liblaf.pretty._lower._lowerer import Lowerer
 
-class LowerableChild(Protocol):
+
+class LowerableChild(abc.ABC):
+    @abc.abstractmethod
     def lower(
         self,
         lowerer: Lowerer,
@@ -23,16 +34,17 @@ class LowerableChild(Protocol):
     ) -> Lowered: ...
 
 @attrs.define
-class TracedLiteral:
+class TracedLiteral(LowerableChild):
     value: Text = attrs.field(converter=lambda value: value.copy())
 
     def lower(
         self,
-        _lowerer: Lowerer,
+        lowerer: Lowerer,
         *,
         inline_repeat: bool,
         ancestors: tuple[int, ...],
-    ) -> LoweredLeaf:
+    ) -> Lowered:
+        del lowerer
         del inline_repeat, ancestors
         return LoweredLeaf(self.value.copy())
 

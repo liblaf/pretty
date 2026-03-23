@@ -1,15 +1,17 @@
 from collections.abc import Callable
 
-from ..._prelude import ItemSpec, LiteralSpec, PrettyBuilder
+from liblaf.pretty._prelude import ItemSpec, LiteralSpec, PrettyBuilder
+
 from ._items import LowerableChild, TracedItem, TracedValueItem
 from ._nodes import TracedContainerNode
 from ._occurrence import TracedOccurrence
+
+_ONLY_LITERAL_CHILD = "only LiteralSpec may be used as a container child"
 
 
 def expand_occurrence(
     occurrence: TracedOccurrence,
     *,
-    builder: PrettyBuilder,
     discover: Callable[[object, int, tuple[int, ...], tuple[int, ...]], TracedOccurrence],
 ) -> None:
     node = occurrence.node
@@ -56,7 +58,7 @@ def trace_child(
     if isinstance(child, LiteralSpec):
         return child.trace_child(), slot_index + 1
     if isinstance(child, ItemSpec):
-        raise TypeError("only LiteralSpec may be used as a container child")
+        raise TypeError(_ONLY_LITERAL_CHILD)
     return discover(child, depth, child_path, ancestors), slot_index + 1
 
 

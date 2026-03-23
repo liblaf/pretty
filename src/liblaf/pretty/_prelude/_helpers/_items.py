@@ -6,10 +6,16 @@ from typing import TYPE_CHECKING
 
 import attrs
 
+from liblaf.pretty._trace._core._items import (
+    TracedEntryItem,
+    TracedFieldItem,
+    TracedValueItem,
+)
+
 from ._common import PrettyChild
 
 if TYPE_CHECKING:
-    from ..._trace._core._items import LowerableChild, TracedItem
+    from liblaf.pretty._trace._core._items import LowerableChild, TracedItem
 
 
 @attrs.frozen
@@ -38,8 +44,6 @@ class ValueItemSpec(ItemSpec):
         slot_index: int,
         trace_child: Callable[[PrettyChild, int], tuple[LowerableChild, int]],
     ) -> tuple[TracedItem, int]:
-        from ..._trace._core._items import TracedValueItem
-
         child, slot_index = trace_child(self.child, slot_index)
         return (
             TracedValueItem(
@@ -64,8 +68,6 @@ class EntryItemSpec(ItemSpec):
         slot_index: int,
         trace_child: Callable[[PrettyChild, int], tuple[LowerableChild, int]],
     ) -> tuple[TracedItem, int]:
-        from ..._trace._core._items import TracedEntryItem
-
         key, slot_index = trace_child(self.key, slot_index)
         value, slot_index = trace_child(self.value, slot_index)
         return (
@@ -92,8 +94,6 @@ class FieldItemSpec(ItemSpec):
         slot_index: int,
         trace_child: Callable[[PrettyChild, int], tuple[LowerableChild, int]],
     ) -> tuple[TracedItem, int]:
-        from ..._trace._core._items import TracedFieldItem
-
         value, slot_index = trace_child(self.value, slot_index)
         return (
             TracedFieldItem(

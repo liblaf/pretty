@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import abc
+from typing import TYPE_CHECKING
 
 import attrs
 from rich.text import Text
 
+from liblaf.pretty._trace._core._items import TracedLiteral
+from liblaf.pretty._trace._core._nodes import TracedContainerNode, TracedLeafNode
+
 from ._common import copy_text
 from ._items import ItemSpec
+
+if TYPE_CHECKING:
+    from liblaf.pretty._trace._core._nodes import TracedNode
 
 
 @attrs.frozen
@@ -14,7 +21,7 @@ class PrettySpec(abc.ABC):
     referable: bool = attrs.field(default=True, kw_only=True)
 
     @abc.abstractmethod
-    def make_node(self, *, obj_id: int, cls: type) -> object:
+    def make_node(self, *, obj_id: int, cls: type) -> TracedNode:
         raise NotImplementedError
 
 
@@ -23,14 +30,10 @@ class LiteralSpec(PrettySpec):
     value: Text = attrs.field(converter=copy_text)
     referable: bool = attrs.field(default=False, init=False)
 
-    def make_node(self, *, obj_id: int, cls: type) -> object:
-        from ..._trace._core._nodes import TracedLeafNode
-
+    def make_node(self, *, obj_id: int, cls: type) -> TracedNode:
         return TracedLeafNode(obj_id=obj_id, cls=cls, referable=False, value=self.value)
 
-    def trace_child(self) -> object:
-        from ..._trace._core._items import TracedLiteral
-
+    def trace_child(self) -> TracedLiteral:
         return TracedLiteral(self.value)
 
 
@@ -38,9 +41,7 @@ class LiteralSpec(PrettySpec):
 class LeafSpec(PrettySpec):
     value: Text = attrs.field(converter=copy_text)
 
-    def make_node(self, *, obj_id: int, cls: type) -> object:
-        from ..._trace._core._nodes import TracedLeafNode
-
+    def make_node(self, *, obj_id: int, cls: type) -> TracedNode:
         return TracedLeafNode(
             obj_id=obj_id,
             cls=cls,
@@ -71,9 +72,7 @@ class ContainerSpec(PrettySpec):
         default=attrs.Factory(_default_empty_close_brace, takes_self=True), kw_only=True
     )
 
-    def make_node(self, *, obj_id: int, cls: type) -> object:
-        from ..._trace._core._nodes import TracedContainerNode
-
+    def make_node(self, *, obj_id: int, cls: type) -> TracedNode:
         return TracedContainerNode(
             obj_id=obj_id,
             cls=cls,

@@ -7,7 +7,8 @@ from rich.console import RenderResult
 from rich.containers import Lines
 from rich.text import Text
 
-from .._writer import Writer
+from liblaf.pretty._compile._writer import Writer
+
 from ._base import Lowered
 
 

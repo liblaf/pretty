@@ -4,15 +4,17 @@ from typing import TYPE_CHECKING
 
 import attrs
 
-from ..._compile import Lowered
+from liblaf.pretty._compile import Lowered
+
+from ._items import LowerableChild
 from ._nodes import TracedNode
 
 if TYPE_CHECKING:
-    from ..._lower._lowerer import Lowerer
+    from liblaf.pretty._lower._lowerer import Lowerer
 
 
 @attrs.define
-class TracedOccurrence:
+class TracedOccurrence(LowerableChild):
     node: TracedNode
     kind: str
     path: tuple[int, ...]

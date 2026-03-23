@@ -4,13 +4,14 @@ from collections import deque
 
 import attrs
 
-from ..._api._config import PrettyOptions
-from ..._prelude import PrettyBuilder
-from .._registry import PrettyRegistry, registry
+from liblaf.pretty._api._config import PrettyOptions
+from liblaf.pretty._prelude import PrettyBuilder
+from liblaf.pretty._trace._registry import PrettyRegistry, registry
+
 from ._describe import describe, make_node
 from ._expand import expand_occurrence, truncate_container
 from ._nodes import TracedContainerNode, TracedNode
-from ._occurrence import TraceResult, TracedOccurrence
+from ._occurrence import TracedOccurrence, TraceResult
 
 
 @attrs.define
@@ -33,7 +34,6 @@ class TraceEngine:
         while self._queue:
             expand_occurrence(
                 self._queue.popleft(),
-                builder=self.builder,
                 discover=self._discover,
             )
         return TraceResult(

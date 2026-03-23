@@ -1,6 +1,6 @@
 from rich.console import Console, ConsoleOptions, RenderResult
 
-from .._compile import Lowered
+from liblaf.pretty._compile import Lowered
 
 
 class PrettyDoc:

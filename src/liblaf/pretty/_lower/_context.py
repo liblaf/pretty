@@ -1,7 +1,11 @@
 import attrs
 from rich.text import Text
 
-from .._compile import INDENT
+from liblaf.pretty._compile import INDENT
+
+
+def _default_indent() -> Text:
+    return INDENT.copy()
 
 
 @attrs.define(frozen=True)
@@ -27,5 +31,5 @@ class ReferenceFormatter:
 @attrs.define(frozen=True)
 class LowerContext:
     typenames: dict[type, str]
-    indent: Text = attrs.field(factory=lambda: INDENT.copy())
+    indent: Text = attrs.field(factory=_default_indent)
     reference_formatter: ReferenceFormatter = attrs.field(factory=ReferenceFormatter)

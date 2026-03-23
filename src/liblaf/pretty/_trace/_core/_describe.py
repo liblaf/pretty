@@ -1,14 +1,19 @@
-from ..._prelude import PrettyBuilder, PrettySpec
-from .._registry import PrettyRegistry
-from .._repr import trace_repr
+from collections.abc import Callable
+from typing import cast
+
+from liblaf.pretty._prelude import PrettyBuilder, PrettySpec, SupportsPretty
+from liblaf.pretty._trace._registry import PrettyRegistry
+from liblaf.pretty._trace._repr import trace_repr
+
 from ._nodes import TracedNode
 
 
 def describe(
     obj: object, *, builder: PrettyBuilder, registry: PrettyRegistry
 ) -> PrettySpec:
-    if hasattr(obj, "__liblaf_pretty__"):
-        result = obj.__liblaf_pretty__(builder)
+    if isinstance(obj, SupportsPretty):
+        pretty = cast("Callable[[PrettyBuilder], PrettySpec | None]", obj.__liblaf_pretty__)
+        result = pretty(builder)
         if result is not None:
             return result
     handler = registry.resolve(obj)

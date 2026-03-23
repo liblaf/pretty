@@ -2,9 +2,9 @@ import types
 
 from rich.text import Text
 
-from .. import LiteralSpec, PrettyBuilder
-from ..._trace._registry import registry
-from ..._trace._repr import repr_text
+from liblaf.pretty._prelude import LiteralSpec, PrettyBuilder
+from liblaf.pretty._trace._registry import registry
+from liblaf.pretty._trace._repr import repr_text
 
 TRUE = LiteralSpec(Text("True", "repr.bool_true"))
 FALSE = LiteralSpec(Text("False", "repr.bool_false"))

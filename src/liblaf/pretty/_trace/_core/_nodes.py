@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING
 import attrs
 from rich.text import Text
 
-from ..._compile import Item, Lowered, LoweredContainer, LoweredLeaf
+from liblaf.pretty._compile import Item, Lowered, LoweredContainer, LoweredLeaf
+
 from ._items import TracedItem
 
 if TYPE_CHECKING:
-    from ..._lower._lowerer import Lowerer
-    from ..._prelude import ItemSpec
+    from liblaf.pretty._lower._lowerer import Lowerer
+    from liblaf.pretty._prelude import ItemSpec
 
 
 @attrs.define

@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Iterator
 
-from .. import ItemSpec, PrettyBuilder
+from liblaf.pretty._prelude import ItemSpec, PrettyBuilder
 
 
 def truncate_sequence(

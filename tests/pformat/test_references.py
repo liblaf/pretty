@@ -1,6 +1,6 @@
 from typing import Any
 
-from liblaf.pretty import PrettyBuilder, pformat
+from liblaf.pretty import PrettyBuilder, PrettySpec, pformat
 
 
 def test_recursive() -> None:
@@ -44,7 +44,7 @@ def test_shallowest_anchor() -> None:
 
 
 class InlineRepeat:
-    def __liblaf_pretty__(self, builder: PrettyBuilder):
+    def __liblaf_pretty__(self, builder: PrettyBuilder) -> PrettySpec:
         return builder.object([builder.field("value", "x")], referable=False)
 
 
@@ -62,7 +62,7 @@ class NonreferableCycle:
     def __init__(self) -> None:
         self.child = self
 
-    def __liblaf_pretty__(self, builder: PrettyBuilder):
+    def __liblaf_pretty__(self, builder: PrettyBuilder) -> PrettySpec:
         return builder.object([builder.field("child", self.child)], referable=False)
 
 

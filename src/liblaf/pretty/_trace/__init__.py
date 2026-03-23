@@ -1,6 +1,4 @@
 from ._core import (
-    TraceEngine,
-    TraceResult,
     TracedContainerNode,
     TracedEntryItem,
     TracedFieldItem,
@@ -9,6 +7,8 @@ from ._core import (
     TracedNode,
     TracedOccurrence,
     TracedValueItem,
+    TraceEngine,
+    TraceResult,
     trace,
 )
 from ._registry import PrettyAdapter, PrettyRegistry, registry

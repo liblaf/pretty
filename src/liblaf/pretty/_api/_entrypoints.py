@@ -1,12 +1,11 @@
 from typing import Any
 
-import rich
 from rich.console import Console
 
-from .._lower import lower
-from .._trace import trace
-from ._config import PrettyOptions, config
-from ._doc import PrettyDoc
+from liblaf.pretty._api._config import PrettyOptions, config
+from liblaf.pretty._api._doc import PrettyDoc
+from liblaf.pretty._lower import lower
+from liblaf.pretty._trace import trace
 
 
 def pdoc(obj: Any, *, options: PrettyOptions | None = None, **kwargs: Any) -> PrettyDoc:

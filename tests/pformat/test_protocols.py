@@ -2,11 +2,11 @@ import dataclasses
 
 from rich.repr import RichReprResult
 
-from liblaf.pretty import PrettyBuilder, pformat
+from liblaf.pretty import PrettyBuilder, PrettySpec, pformat
 
 
 class SupportsPretty:
-    def __liblaf_pretty__(self, builder: PrettyBuilder):
+    def __liblaf_pretty__(self, builder: PrettyBuilder) -> PrettySpec:
         return builder.leaf("SUPPORTS_PRETTY", referable=False)
 
 
@@ -15,7 +15,7 @@ def test_pretty_protocol() -> None:
 
 
 class MixedItems:
-    def __liblaf_pretty__(self, builder: PrettyBuilder):
+    def __liblaf_pretty__(self, builder: PrettyBuilder) -> PrettySpec:
         return builder.object(
             [
                 builder.value("leaf0"),

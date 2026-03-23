@@ -6,10 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 from rich.text import Text
 
-from ..._compile import COMMA
-from .. import LeafSpec, PrettyBuilder
-
-from ..._trace._registry import registry
+from liblaf.pretty._compile import COMMA
+from liblaf.pretty._prelude import LeafSpec, PrettyBuilder
+from liblaf.pretty._trace._registry import registry
 
 if TYPE_CHECKING:
     import jax

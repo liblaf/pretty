@@ -6,9 +6,10 @@ import attrs
 from rich.console import RenderResult
 from rich.text import Text
 
-from .._const import INDENT
-from .._items._base import Item
-from .._writer import Writer
+from liblaf.pretty._compile._const import INDENT
+from liblaf.pretty._compile._items._base import Item
+from liblaf.pretty._compile._writer import Writer
+
 from ._base import Lowered
 
 

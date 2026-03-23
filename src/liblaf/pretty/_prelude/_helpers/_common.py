@@ -9,4 +9,4 @@ def copy_text(value: str | Text) -> Text:
     return Text(value)
 
 
-type PrettyChild = object | "LiteralSpec"
+type PrettyChild = object

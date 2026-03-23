@@ -1,6 +1,6 @@
-from .. import ContainerSpec, PrettyBuilder
+from liblaf.pretty._prelude import ContainerSpec, PrettyBuilder
+from liblaf.pretty._trace._registry import registry
 
-from ..._trace._registry import registry
 from ._helpers import truncate_mapping, truncate_sequence
 
 
@@ -8,8 +8,8 @@ from ._helpers import truncate_mapping, truncate_sequence
 def _trace_list(obj: list, builder: PrettyBuilder) -> ContainerSpec:
     return builder.container(
         truncate_sequence(builder, obj, builder.options.max_list),
-        open="[",
-        close="]",
+        open_brace="[",
+        close_brace="]",
         referable=True,
     )
 
@@ -18,8 +18,8 @@ def _trace_list(obj: list, builder: PrettyBuilder) -> ContainerSpec:
 def _trace_tuple(obj: tuple, builder: PrettyBuilder) -> ContainerSpec:
     return builder.container(
         truncate_sequence(builder, obj, builder.options.max_list),
-        open="(",
-        close=")",
+        open_brace="(",
+        close_brace=")",
         trailing_comma_single=True,
         referable=True,
     )
@@ -29,8 +29,8 @@ def _trace_tuple(obj: tuple, builder: PrettyBuilder) -> ContainerSpec:
 def _trace_set(obj: set, builder: PrettyBuilder) -> ContainerSpec:
     return builder.container(
         truncate_sequence(builder, obj, builder.options.max_list),
-        open="{",
-        close="}",
+        open_brace="{",
+        close_brace="}",
         referable=True,
     )
 
@@ -39,8 +39,8 @@ def _trace_set(obj: set, builder: PrettyBuilder) -> ContainerSpec:
 def _trace_frozenset(obj: frozenset, builder: PrettyBuilder) -> ContainerSpec:
     return builder.container(
         truncate_sequence(builder, obj, builder.options.max_list),
-        open="({",
-        close="})",
+        open_brace="({",
+        close_brace="})",
         empty_open="(",
         empty_close=")",
         show_type_name=True,
@@ -52,7 +52,7 @@ def _trace_frozenset(obj: frozenset, builder: PrettyBuilder) -> ContainerSpec:
 def _trace_dict(obj: dict, builder: PrettyBuilder) -> ContainerSpec:
     return builder.container(
         truncate_mapping(builder, obj.items(), builder.options.max_dict),
-        open="{",
-        close="}",
+        open_brace="{",
+        close_brace="}",
         referable=True,
     )

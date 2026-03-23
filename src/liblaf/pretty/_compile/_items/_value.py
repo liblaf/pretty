@@ -5,8 +5,9 @@ from typing import override
 import attrs
 from rich.console import RenderResult
 
-from .._nodes._base import Lowered
-from .._writer import Writer
+from liblaf.pretty._compile._nodes._base import Lowered
+from liblaf.pretty._compile._writer import Writer
+
 from ._base import Item
 
 

@@ -5,7 +5,7 @@ from ._nodes import (
     TracedLeafNode,
     TracedNode,
 )
-from ._occurrence import TraceResult, TracedOccurrence
+from ._occurrence import TracedOccurrence, TraceResult
 
 __all__ = [
     "TraceEngine",

@@ -6,9 +6,13 @@ from typing import Any, Self
 
 from rich.text import Text
 
-from .._compile import INDENT
-from ._config_fields import BoolField, ConfigField, IntField, TextField
-
+from liblaf.pretty._api._config_fields import (
+    BoolField,
+    ConfigField,
+    IntField,
+    TextField,
+)
+from liblaf.pretty._compile import INDENT
 
 _HIDE_DEFAULTS_FIELD: BoolField = BoolField("hide_defaults", True)  # noqa: FBT003
 _INDENT_FIELD: TextField = TextField("indent", INDENT)
@@ -22,10 +26,14 @@ _MAX_STRING_FIELD: IntField = IntField("max_string", 30)
 _MAX_WIDTH_FIELD: IntField = IntField("max_width", 88)
 
 
+def _default_indent() -> Text:
+    return _INDENT_FIELD.get().copy()
+
+
 @dataclasses.dataclass(frozen=True, slots=True)
 class PrettyOptions:
     hide_defaults: bool = dataclasses.field(default_factory=_HIDE_DEFAULTS_FIELD.get)
-    indent: Text = dataclasses.field(default_factory=lambda: _INDENT_FIELD.get().copy())
+    indent: Text = dataclasses.field(default_factory=_default_indent)
     max_array: int = dataclasses.field(default_factory=_MAX_ARRAY_FIELD.get)
     max_dict: int = dataclasses.field(default_factory=_MAX_DICT_FIELD.get)
     max_level: int = dataclasses.field(default_factory=_MAX_LEVEL_FIELD.get)
@@ -52,19 +60,24 @@ class PrettyConfig:
     max_width: ConfigField[int] = _MAX_WIDTH_FIELD
 
     def __init__(self) -> None:
-        self._options: contextvars.ContextVar[PrettyOptions] = contextvars.ContextVar(
-            "pretty_options", default=PrettyOptions()
+        self._options: contextvars.ContextVar[PrettyOptions | None] = contextvars.ContextVar(
+            "pretty_options", default=None
         )
 
     def get(self) -> PrettyOptions:
-        return self._options.get()
+        options = self._options.get()
+        if options is None:
+            return PrettyOptions()
+        return options
 
-    def set(self, options: PrettyOptions) -> contextvars.Token[PrettyOptions]:
+    def set(self, options: PrettyOptions) -> contextvars.Token[PrettyOptions | None]:
         return self._options.set(options)
 
     @contextlib.contextmanager
     def override(self, **kwargs: Any) -> Generator[PrettyOptions]:
-        token: contextvars.Token[PrettyOptions] = self.set(self.get().replace(**kwargs))
+        token: contextvars.Token[PrettyOptions | None] = self.set(
+            self.get().replace(**kwargs)
+        )
         try:
             yield self.get()
         finally:

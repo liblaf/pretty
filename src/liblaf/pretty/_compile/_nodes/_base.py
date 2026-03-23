@@ -5,8 +5,8 @@ import attrs
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.text import Text
 
-from .._const import EMPTY
-from .._writer import Writer
+from liblaf.pretty._compile._const import EMPTY
+from liblaf.pretty._compile._writer import Writer
 
 
 @attrs.define

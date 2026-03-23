@@ -1,17 +1,19 @@
 from collections.abc import Iterable
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 import attrs
 from rich.highlighter import Highlighter, ReprHighlighter
 from rich.text import Text
 
-from ..._api._config import PrettyOptions
-from ..._api._text import has_ansi
+from liblaf.pretty._api._config import PrettyOptions
+from liblaf.pretty._api._text import has_ansi
+
 from ._common import PrettyChild, copy_text
 from ._items import EntryItemSpec, FieldItemSpec, ItemSpec, ValueItemSpec
 from ._specs import ContainerSpec, LeafSpec, LiteralSpec, PrettySpec
 
 
+@runtime_checkable
 class SupportsPretty(Protocol):
     def __liblaf_pretty__(self, builder: "PrettyBuilder") -> PrettySpec | None: ...
 
@@ -36,40 +38,39 @@ class PrettyBuilder:
         self,
         items: Iterable[ItemSpec],
         *,
-        open: str,
-        close: str,
+        open_brace: str,
+        close_brace: str,
         empty_open: str | None = None,
         empty_close: str | None = None,
         show_type_name: bool = False,
         trailing_comma_single: bool = False,
         referable: bool = True,
     ) -> ContainerSpec:
-        kwargs: dict[str, object] = {
-            "items": tuple(items),
-            "open_brace": open,
-            "close_brace": close,
-            "show_type_name": show_type_name,
-            "trailing_comma_single": trailing_comma_single,
-            "referable": referable,
-        }
-        if empty_open is not None:
-            kwargs["empty_open_brace"] = empty_open
-        if empty_close is not None:
-            kwargs["empty_close_brace"] = empty_close
-        return ContainerSpec(**kwargs)
+        return ContainerSpec(
+            items=tuple(items),
+            open_brace=open_brace,
+            close_brace=close_brace,
+            empty_open_brace=empty_open if empty_open is not None else open_brace[:1],
+            empty_close_brace=(
+                empty_close if empty_close is not None else close_brace[-1:]
+            ),
+            show_type_name=show_type_name,
+            trailing_comma_single=trailing_comma_single,
+            referable=referable,
+        )
 
     def object(
         self,
         items: Iterable[ItemSpec],
         *,
-        open: str = "(",
-        close: str = ")",
+        open_brace: str = "(",
+        close_brace: str = ")",
         referable: bool = True,
     ) -> ContainerSpec:
         return self.container(
             items,
-            open=open,
-            close=close,
+            open_brace=open_brace,
+            close_brace=close_brace,
             show_type_name=True,
             referable=referable,
         )
