@@ -1,6 +1,8 @@
 from collections.abc import Callable
 
-from liblaf.pretty._prelude import ItemSpec, LiteralSpec, PrettyBuilder
+from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
+from liblaf.pretty._prelude._helpers._items import ItemSpec
+from liblaf.pretty._prelude._helpers._specs import LiteralSpec
 
 from ._items import LowerableChild, TracedItem, TracedValueItem
 from ._nodes import TracedContainerNode

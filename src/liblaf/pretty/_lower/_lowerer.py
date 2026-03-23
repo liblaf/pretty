@@ -5,7 +5,8 @@ import attrs
 from liblaf.pretty._api._config import PrettyOptions
 from liblaf.pretty._api._doc import PrettyDoc
 from liblaf.pretty._compile import LoweredLeaf
-from liblaf.pretty._trace import TracedNode, TraceResult
+from liblaf.pretty._trace._core._nodes import TracedNode
+from liblaf.pretty._trace._core._occurrence import TraceResult
 
 from ._context import LowerContext
 from ._names import TypeNameResolver

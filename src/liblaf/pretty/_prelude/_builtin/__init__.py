@@ -1,3 +1,4 @@
-from . import _array, _containers, _fieldz, _rich_repr, _scalars
+import lazy_loader as lazy
 
-__all__ = ["_array", "_containers", "_fieldz", "_rich_repr", "_scalars"]
+__getattr__, __dir__, __all__ = lazy.attach_stub(__name__, __file__)
+del lazy

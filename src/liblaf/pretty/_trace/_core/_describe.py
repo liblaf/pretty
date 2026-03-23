@@ -1,7 +1,8 @@
 from collections.abc import Callable
 from typing import cast
 
-from liblaf.pretty._prelude import PrettyBuilder, PrettySpec, SupportsPretty
+from liblaf.pretty._prelude._helpers._builder import PrettyBuilder, SupportsPretty
+from liblaf.pretty._prelude._helpers._specs import PrettySpec
 from liblaf.pretty._trace._registry import PrettyRegistry
 from liblaf.pretty._trace._repr import trace_repr
 

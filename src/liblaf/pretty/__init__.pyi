@@ -1,28 +1,17 @@
-from ._api import (
-    PrettyConfig,
-    PrettyDoc,
-    PrettyOptions,
-    config,
-    has_ansi,
-    pdoc,
-    pformat,
-    pprint,
-    text,
-)
-from ._prelude import (
-    ContainerSpec,
+from ._api._config import PrettyConfig, PrettyOptions, config
+from ._api._doc import PrettyDoc
+from ._api._entrypoints import pdoc, pformat, pprint
+from ._api._text import has_ansi, text
+from ._prelude._helpers._builder import PrettyBuilder, SupportsPretty
+from ._prelude._helpers._common import PrettyChild
+from ._prelude._helpers._items import (
     EntryItemSpec,
     FieldItemSpec,
     ItemSpec,
-    LeafSpec,
-    LiteralSpec,
-    PrettyBuilder,
-    PrettyChild,
-    PrettySpec,
-    SupportsPretty,
     ValueItemSpec,
 )
-from ._trace import PrettyAdapter, PrettyRegistry, registry
+from ._prelude._helpers._specs import ContainerSpec, LeafSpec, LiteralSpec, PrettySpec
+from ._trace._registry import PrettyAdapter, PrettyRegistry, registry
 from ._version import __commit_id__, __version__, __version_tuple__
 
 __all__ = [

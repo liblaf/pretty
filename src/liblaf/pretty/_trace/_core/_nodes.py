@@ -12,7 +12,7 @@ from ._items import TracedItem
 
 if TYPE_CHECKING:
     from liblaf.pretty._lower._lowerer import Lowerer
-    from liblaf.pretty._prelude import ItemSpec
+    from liblaf.pretty._prelude._helpers._items import ItemSpec
 
 
 @attrs.define

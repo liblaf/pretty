@@ -1,5 +1,4 @@
-from ._base import Item
-from ._key_value import ItemKeyValue
-from ._value import ItemValue
+import lazy_loader as lazy
 
-__all__ = ["Item", "ItemKeyValue", "ItemValue"]
+__getattr__, __dir__, __all__ = lazy.attach_stub(__name__, __file__)
+del lazy

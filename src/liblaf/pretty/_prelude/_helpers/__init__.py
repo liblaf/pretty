@@ -1,18 +1,4 @@
-from ._builder import PrettyBuilder, SupportsPretty
-from ._common import PrettyChild
-from ._items import EntryItemSpec, FieldItemSpec, ItemSpec, ValueItemSpec
-from ._specs import ContainerSpec, LeafSpec, LiteralSpec, PrettySpec
+import lazy_loader as lazy
 
-__all__ = [
-    "ContainerSpec",
-    "EntryItemSpec",
-    "FieldItemSpec",
-    "ItemSpec",
-    "LeafSpec",
-    "LiteralSpec",
-    "PrettyBuilder",
-    "PrettyChild",
-    "PrettySpec",
-    "SupportsPretty",
-    "ValueItemSpec",
-]
+__getattr__, __dir__, __all__ = lazy.attach_stub(__name__, __file__)
+del lazy

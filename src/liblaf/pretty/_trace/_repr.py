@@ -2,7 +2,8 @@ import reprlib
 
 from rich.text import Text
 
-from liblaf.pretty._prelude import LeafSpec, PrettyBuilder
+from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
+from liblaf.pretty._prelude._helpers._specs import LeafSpec
 
 
 def repr_text(obj: object, builder: PrettyBuilder) -> Text:

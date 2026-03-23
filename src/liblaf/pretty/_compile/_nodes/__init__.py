@@ -1,5 +1,4 @@
-from ._base import Lowered
-from ._container import LoweredContainer
-from ._leaf import LoweredLeaf
+import lazy_loader as lazy
 
-__all__ = ["Lowered", "LoweredContainer", "LoweredLeaf"]
+__getattr__, __dir__, __all__ = lazy.attach_stub(__name__, __file__)
+del lazy

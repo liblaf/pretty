@@ -1,4 +1,5 @@
-from liblaf.pretty._prelude import ContainerSpec, PrettyBuilder
+from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
+from liblaf.pretty._prelude._helpers._specs import ContainerSpec
 from liblaf.pretty._trace._registry import registry
 
 from ._helpers import truncate_mapping, truncate_sequence

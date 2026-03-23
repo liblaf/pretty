@@ -4,8 +4,8 @@ from rich.console import Console
 
 from liblaf.pretty._api._config import PrettyOptions, config
 from liblaf.pretty._api._doc import PrettyDoc
-from liblaf.pretty._lower import lower
-from liblaf.pretty._trace import trace
+from liblaf.pretty._lower._lowerer import lower
+from liblaf.pretty._trace._core._engine import trace
 
 
 def pdoc(obj: Any, *, options: PrettyOptions | None = None, **kwargs: Any) -> PrettyDoc:

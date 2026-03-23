@@ -1,16 +1,4 @@
-from ._config import PrettyConfig, PrettyOptions, config
-from ._doc import PrettyDoc
-from ._entrypoints import pdoc, pformat, pprint
-from ._text import has_ansi, text
+import lazy_loader as lazy
 
-__all__ = [
-    "PrettyConfig",
-    "PrettyDoc",
-    "PrettyOptions",
-    "config",
-    "has_ansi",
-    "pdoc",
-    "pformat",
-    "pprint",
-    "text",
-]
+__getattr__, __dir__, __all__ = lazy.attach_stub(__name__, __file__)
+del lazy

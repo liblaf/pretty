@@ -1,22 +1,4 @@
-from ._engine import TraceEngine, trace
-from ._items import TracedEntryItem, TracedFieldItem, TracedLiteral, TracedValueItem
-from ._nodes import (
-    TracedContainerNode,
-    TracedLeafNode,
-    TracedNode,
-)
-from ._occurrence import TracedOccurrence, TraceResult
+import lazy_loader as lazy
 
-__all__ = [
-    "TraceEngine",
-    "TraceResult",
-    "TracedContainerNode",
-    "TracedEntryItem",
-    "TracedFieldItem",
-    "TracedLeafNode",
-    "TracedLiteral",
-    "TracedNode",
-    "TracedOccurrence",
-    "TracedValueItem",
-    "trace",
-]
+__getattr__, __dir__, __all__ = lazy.attach_stub(__name__, __file__)
+del lazy

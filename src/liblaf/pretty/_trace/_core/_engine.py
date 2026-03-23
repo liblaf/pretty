@@ -5,7 +5,7 @@ from collections import deque
 import attrs
 
 from liblaf.pretty._api._config import PrettyOptions
-from liblaf.pretty._prelude import PrettyBuilder
+from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
 from liblaf.pretty._trace._registry import PrettyRegistry, registry
 
 from ._describe import describe, make_node
