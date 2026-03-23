@@ -35,7 +35,9 @@ class TracedOccurrence(LowerableChild):
             return node.lower(lowerer, inline_repeat=True, ancestors=ancestors)
         if self.kind == "cycle" or (self.kind == "repeat" and node.referable):
             return lowerer.lower_reference(node)
-        annotate = self.kind == "anchor" and node.referable and node.appearance_count > 1
+        annotate = (
+            self.kind == "anchor" and node.referable and node.appearance_count > 1
+        )
         return node.lower(
             lowerer,
             inline_repeat=self.kind == "repeat",

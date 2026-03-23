@@ -60,8 +60,8 @@ class PrettyConfig:
     max_width: ConfigField[int] = _MAX_WIDTH_FIELD
 
     def __init__(self) -> None:
-        self._options: contextvars.ContextVar[PrettyOptions | None] = contextvars.ContextVar(
-            "pretty_options", default=None
+        self._options: contextvars.ContextVar[PrettyOptions | None] = (
+            contextvars.ContextVar("pretty_options", default=None)
         )
 
     def get(self) -> PrettyOptions:

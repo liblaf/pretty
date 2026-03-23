@@ -19,9 +19,7 @@ def _trace_bool(obj: bool, _builder: PrettyBuilder) -> LiteralSpec:  # noqa: FBT
 
 
 @registry.register(types.EllipsisType)
-def _trace_ellipsis(
-    _obj: types.EllipsisType, _builder: PrettyBuilder
-) -> LiteralSpec:
+def _trace_ellipsis(_obj: types.EllipsisType, _builder: PrettyBuilder) -> LiteralSpec:
     return ELLIPSIS
 
 

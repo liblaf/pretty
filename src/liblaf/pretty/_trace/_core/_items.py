@@ -33,6 +33,7 @@ class LowerableChild(abc.ABC):
         ancestors: tuple[int, ...],
     ) -> Lowered: ...
 
+
 @attrs.define
 class TracedLiteral(LowerableChild):
     value: Text = attrs.field(converter=lambda value: value.copy())
@@ -47,6 +48,7 @@ class TracedLiteral(LowerableChild):
         del lowerer
         del inline_repeat, ancestors
         return LoweredLeaf(self.value.copy())
+
 
 @attrs.define
 class TracedItem(abc.ABC):
@@ -71,6 +73,7 @@ class TracedItem(abc.ABC):
     ) -> Item:
         raise NotImplementedError
 
+
 @attrs.define
 class TracedValueItem(TracedItem):
     child: LowerableChild = attrs.field()
@@ -83,12 +86,11 @@ class TracedValueItem(TracedItem):
         ancestors: tuple[int, ...],
     ) -> ItemValue:
         return ItemValue(
-            self.child.lower(
-                lowerer, inline_repeat=inline_repeat, ancestors=ancestors
-            ),
+            self.child.lower(lowerer, inline_repeat=inline_repeat, ancestors=ancestors),
             prefix=self.prefix,
             suffix=self.suffix,
         )
+
 
 @attrs.define
 class TracedEntryItem(TracedItem):
@@ -113,6 +115,7 @@ class TracedEntryItem(TracedItem):
             prefix=self.prefix,
             suffix=self.suffix,
         )
+
 
 @attrs.define
 class TracedFieldItem(TracedItem):

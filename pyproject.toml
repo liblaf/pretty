@@ -54,7 +54,6 @@ test = [
   "pytest-codspeed>=4",
   "pytest-cov>=7",
   "pytest-randomly>=4",
-  "pytest-xdist>=3",
   { include-group = "dev" }
 ]
 
@@ -85,12 +84,7 @@ source = "vcs"
 extends = ".config/linters/pyrightconfig.json"
 
 [tool.pytest]
-addopts = [
-  "--doctest-modules",
-  "--import-mode=importlib",
-  "--numprocesses=auto",
-  "--showlocals"
-]
+addopts = ["--doctest-modules", "--import-mode=importlib", "--showlocals"]
 consider_namespace_packages = true
 strict = true
 testpaths = ["benches", "src", "tests"]

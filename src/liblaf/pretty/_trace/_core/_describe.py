@@ -13,7 +13,9 @@ def describe(
     obj: object, *, builder: PrettyBuilder, registry: PrettyRegistry
 ) -> PrettySpec:
     if isinstance(obj, SupportsPretty):
-        pretty = cast("Callable[[PrettyBuilder], PrettySpec | None]", obj.__liblaf_pretty__)
+        pretty = cast(
+            "Callable[[PrettyBuilder], PrettySpec | None]", obj.__liblaf_pretty__
+        )
         result = pretty(builder)
         if result is not None:
             return result

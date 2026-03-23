@@ -14,7 +14,9 @@ _ONLY_LITERAL_CHILD = "only LiteralSpec may be used as a container child"
 def expand_occurrence(
     occurrence: TracedOccurrence,
     *,
-    discover: Callable[[object, int, tuple[int, ...], tuple[int, ...]], TracedOccurrence],
+    discover: Callable[
+        [object, int, tuple[int, ...], tuple[int, ...]], TracedOccurrence
+    ],
 ) -> None:
     node = occurrence.node
     if not isinstance(node, TracedContainerNode) or node.expanded:
@@ -54,7 +56,9 @@ def trace_child(
     path_prefix: tuple[int, ...],
     slot_index: int,
     ancestors: tuple[int, ...],
-    discover: Callable[[object, int, tuple[int, ...], tuple[int, ...]], TracedOccurrence],
+    discover: Callable[
+        [object, int, tuple[int, ...], tuple[int, ...]], TracedOccurrence
+    ],
 ) -> tuple[LowerableChild, int]:
     child_path: tuple[int, ...] = (*path_prefix, slot_index)
     if isinstance(child, LiteralSpec):

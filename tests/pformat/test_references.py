@@ -50,10 +50,7 @@ class InlineRepeat:
 
 def test_nonreferable_repeat_inlines() -> None:
     obj: InlineRepeat = InlineRepeat()
-    assert (
-        pformat([obj, obj])
-        == "[InlineRepeat(value='x'), InlineRepeat(value='x')]\n"
-    )
+    assert pformat([obj, obj]) == "[InlineRepeat(value='x'), InlineRepeat(value='x')]\n"
 
 
 class NonreferableCycle:
@@ -69,4 +66,7 @@ class NonreferableCycle:
 def test_nonreferable_cycle_uses_reference() -> None:
     obj = NonreferableCycle()
     obj_id: int = id(obj)
-    assert pformat(obj) == f"NonreferableCycle(child=<*NonreferableCycle object at {obj_id:#x}>)\n"
+    assert (
+        pformat(obj)
+        == f"NonreferableCycle(child=<*NonreferableCycle object at {obj_id:#x}>)\n"
+    )
