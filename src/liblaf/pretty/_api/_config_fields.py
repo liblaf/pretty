@@ -6,7 +6,7 @@ from typing import Any
 import environs
 from rich.text import Text
 
-from ._text import text
+from liblaf.pretty._trace._helpers._text import text
 
 env = environs.Env(prefix="LIBLAF_PRETTY_")
 

@@ -3,8 +3,8 @@ from typing import Any
 from rich.console import Console
 
 from liblaf.pretty._api._config import PrettyOptions, config
-from liblaf.pretty._api._doc import PrettyDoc
 from liblaf.pretty._trace._core._engine import trace
+from liblaf.pretty._types._doc import PrettyDoc
 
 
 def pdoc(obj: Any, *, options: PrettyOptions | None = None, **kwargs: Any) -> PrettyDoc:
