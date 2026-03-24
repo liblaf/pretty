@@ -23,8 +23,4 @@ PYTHON_VERSIONS: list[str] = nox.project.python_versions(PYPROJECT)
 )
 def test(s: nox.Session, resolution: Resolution | None) -> None:
     recipes.setup_uv(s, groups=["test"], resolution=resolution)
-    recipes.pytest(
-        s,
-        env={"XLA_PYTHON_CLIENT_PREALLOCATE": "false"},
-        suppress_no_test_exit_code=True,
-    )
+    recipes.pytest(s, suppress_no_test_exit_code=True)
