@@ -10,8 +10,8 @@ from typing import Any, Protocol, overload
 
 import attrs
 
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
-from liblaf.pretty._prelude._helpers._specs import PrettySpec
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._specs import PrettySpec
 
 logger: logging.Logger = logging.getLogger(__name__)
 

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import attrs
 
-from liblaf.pretty._api._config import PrettyOptions
-from liblaf.pretty._api._doc import PrettyDoc
 from liblaf.pretty._compile import LoweredLeaf
-from liblaf.pretty._trace._core._nodes import TracedNode
-from liblaf.pretty._trace._core._occurrence import TraceResult
+from liblaf.pretty._trace._model._nodes import TracedNode
+from liblaf.pretty._trace._model._occurrence import TraceResult
+from liblaf.pretty._types._doc import PrettyDoc
+from liblaf.pretty._types._options import PrettyOptions
 
 from ._context import LowerContext
 from ._names import TypeNameResolver

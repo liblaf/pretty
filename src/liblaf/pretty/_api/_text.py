@@ -1,11 +1,3 @@
-from rich.text import Text
+from liblaf.pretty._trace._helpers._text import has_ansi, text
 
-
-def has_ansi(text: str) -> bool:
-    return "\x1b" in text
-
-
-def text(text: str) -> Text:
-    if has_ansi(text):
-        return Text.from_ansi(text)
-    return Text.from_markup(text)
+__all__ = ["has_ansi", "text"]

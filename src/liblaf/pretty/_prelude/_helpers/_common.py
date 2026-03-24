@@ -1,12 +1,3 @@
-from __future__ import annotations
+from liblaf.pretty._trace._helpers._common import PrettyChild, copy_text
 
-from rich.text import Text
-
-
-def copy_text(value: str | Text) -> Text:
-    if isinstance(value, Text):
-        return value.copy()
-    return Text(value)
-
-
-type PrettyChild = object
+__all__ = ["PrettyChild", "copy_text"]

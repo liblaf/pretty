@@ -3,8 +3,8 @@ from typing import Any
 
 from rich.repr import RichReprResult
 
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
-from liblaf.pretty._prelude._helpers._specs import ContainerSpec
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._specs import ContainerSpec
 from liblaf.pretty._trace._registry import registry
 
 from ._helpers import filter_fields

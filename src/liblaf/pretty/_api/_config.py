@@ -1,8 +1,7 @@
 import contextlib
 import contextvars
-import dataclasses
 from collections.abc import Generator
-from typing import Any, Self
+from typing import Any
 
 from rich.text import Text
 
@@ -13,6 +12,7 @@ from liblaf.pretty._api._config_fields import (
     TextField,
 )
 from liblaf.pretty._compile import INDENT
+from liblaf.pretty._types._options import PrettyOptions
 
 _HIDE_DEFAULTS_FIELD: BoolField = BoolField("hide_defaults", True)  # noqa: FBT003
 _INDENT_FIELD: TextField = TextField("indent", INDENT)
@@ -28,23 +28,6 @@ _MAX_WIDTH_FIELD: IntField = IntField("max_width", 88)
 
 def _default_indent() -> Text:
     return _INDENT_FIELD.get().copy()
-
-
-@dataclasses.dataclass(frozen=True, slots=True)
-class PrettyOptions:
-    hide_defaults: bool = dataclasses.field(default_factory=_HIDE_DEFAULTS_FIELD.get)
-    indent: Text = dataclasses.field(default_factory=_default_indent)
-    max_array: int = dataclasses.field(default_factory=_MAX_ARRAY_FIELD.get)
-    max_dict: int = dataclasses.field(default_factory=_MAX_DICT_FIELD.get)
-    max_level: int = dataclasses.field(default_factory=_MAX_LEVEL_FIELD.get)
-    max_list: int = dataclasses.field(default_factory=_MAX_LIST_FIELD.get)
-    max_long: int = dataclasses.field(default_factory=_MAX_LONG_FIELD.get)
-    max_other: int = dataclasses.field(default_factory=_MAX_OTHER_FIELD.get)
-    max_string: int = dataclasses.field(default_factory=_MAX_STRING_FIELD.get)
-    max_width: int = dataclasses.field(default_factory=_MAX_WIDTH_FIELD.get)
-
-    def replace(self, **changes: Any) -> Self:
-        return dataclasses.replace(self, **changes)
 
 
 class PrettyConfig:
@@ -67,7 +50,18 @@ class PrettyConfig:
     def get(self) -> PrettyOptions:
         options = self._options.get()
         if options is None:
-            return PrettyOptions()
+            return PrettyOptions(
+                hide_defaults=_HIDE_DEFAULTS_FIELD.get(),
+                indent=_default_indent(),
+                max_array=_MAX_ARRAY_FIELD.get(),
+                max_dict=_MAX_DICT_FIELD.get(),
+                max_level=_MAX_LEVEL_FIELD.get(),
+                max_list=_MAX_LIST_FIELD.get(),
+                max_long=_MAX_LONG_FIELD.get(),
+                max_other=_MAX_OTHER_FIELD.get(),
+                max_string=_MAX_STRING_FIELD.get(),
+                max_width=_MAX_WIDTH_FIELD.get(),
+            )
         return options
 
     def set(self, options: PrettyOptions) -> contextvars.Token[PrettyOptions | None]:

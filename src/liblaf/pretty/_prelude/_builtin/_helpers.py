@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Iterator
 
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
-from liblaf.pretty._prelude._helpers._items import ItemSpec
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._items import ItemSpec
 
 
 def truncate_sequence(

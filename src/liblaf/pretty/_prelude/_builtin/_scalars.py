@@ -2,8 +2,8 @@ import types
 
 from rich.text import Text
 
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
-from liblaf.pretty._prelude._helpers._specs import LiteralSpec
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._specs import LiteralSpec
 from liblaf.pretty._trace._registry import registry
 from liblaf.pretty._trace._repr import repr_text
 

@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from collections import deque
+from typing import TYPE_CHECKING
 
 import attrs
 
-from liblaf.pretty._api._config import PrettyOptions
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._model._nodes import TracedContainerNode, TracedNode
+from liblaf.pretty._trace._model._occurrence import TracedOccurrence, TraceResult
 from liblaf.pretty._trace._registry import PrettyRegistry, registry
 
 from ._describe import describe, make_node
 from ._expand import expand_occurrence, truncate_container
-from ._nodes import TracedContainerNode, TracedNode
-from ._occurrence import TracedOccurrence, TraceResult
+
+if TYPE_CHECKING:
+    from liblaf.pretty._types._options import PrettyOptions
 
 
 @attrs.define

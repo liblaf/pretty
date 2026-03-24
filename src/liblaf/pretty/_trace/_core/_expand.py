@@ -1,12 +1,15 @@
 from collections.abc import Callable
 
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
-from liblaf.pretty._prelude._helpers._items import ItemSpec
-from liblaf.pretty._prelude._helpers._specs import LiteralSpec
-
-from ._items import LowerableChild, TracedItem, TracedValueItem
-from ._nodes import TracedContainerNode
-from ._occurrence import TracedOccurrence
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._items import ItemSpec
+from liblaf.pretty._trace._helpers._specs import LiteralSpec
+from liblaf.pretty._trace._model._items import (
+    LowerableChild,
+    TracedItem,
+    TracedValueItem,
+)
+from liblaf.pretty._trace._model._nodes import TracedContainerNode
+from liblaf.pretty._trace._model._occurrence import TracedOccurrence
 
 _ONLY_LITERAL_CHILD = "only LiteralSpec may be used as a container child"
 

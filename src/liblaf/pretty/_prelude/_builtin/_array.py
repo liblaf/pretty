@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any
 from rich.text import Text
 
 from liblaf.pretty._compile import COMMA
-from liblaf.pretty._prelude._helpers._builder import PrettyBuilder
-from liblaf.pretty._prelude._helpers._specs import LeafSpec
+from liblaf.pretty._trace._helpers._builder import PrettyBuilder
+from liblaf.pretty._trace._helpers._specs import LeafSpec
 from liblaf.pretty._trace._registry import registry
 
 if TYPE_CHECKING:

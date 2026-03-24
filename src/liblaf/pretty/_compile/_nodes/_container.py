@@ -1,16 +1,20 @@
+from __future__ import annotations
+
 import functools
 from collections.abc import Sequence
-from typing import override
+from typing import TYPE_CHECKING, override
 
 import attrs
 from rich.console import RenderResult
 from rich.text import Text
 
 from liblaf.pretty._compile._const import INDENT
-from liblaf.pretty._compile._items._base import Item
 from liblaf.pretty._compile._writer import Writer
 
 from ._base import Lowered
+
+if TYPE_CHECKING:
+    from liblaf.pretty._compile._items._base import Item
 
 
 @attrs.define
