@@ -48,6 +48,7 @@ dynamic = ["version"]
 dev = ["cupy-cuda13x>=14", "jax>=0.9", "numpy>=2", "torch>=2", "warp-lang>=1"]
 build = ["check-wheel-contents>=0.6", "hatch>=1", "twine>=6"]
 docs = ["liblaf-mkdocs-preset>=0.3", "mkdocs>=1,<2"]
+lint = ["import-linter[ui]>=2"]
 nox = ["liblaf-nox-recipes>=0.1", "nox>=2026", "nox-uv>=0.7"]
 test = [
   "pytest>=9",
@@ -80,8 +81,14 @@ packages = ["src/liblaf"]
 [tool.hatch.version]
 source = "vcs"
 
-[tool.pyright]
-extends = ".config/linters/pyrightconfig.json"
+[tool.importlinter]
+exclude_type_checking_imports = true
+root_package = "liblaf.pretty"
+
+[[tool.importlinter.contracts]]
+ancestors = ["liblaf.pretty"]
+name = "Acyclic siblings"
+type = "acyclic_siblings"
 
 [tool.pytest]
 addopts = ["--doctest-modules", "--import-mode=importlib", "--showlocals"]
