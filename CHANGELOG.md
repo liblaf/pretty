@@ -7,6 +7,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Conventional Changelog](https://github.com/conventional-changelog/conventional-changelog-config-spec/blob/master/versions/2.2.0/README.md),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1](https://github.com/liblaf/pretty/releases/tag/v0.1.1) - 2026-03-22
+
+### 🐛 Bug Fixes
+
+- **compile:** use inline item widths for container fit calculation - [51971fc](https://github.com/liblaf/pretty/commit/51971fc9392082c85f7fd78337ff012ddc1953d4) by [@liblaf](https://github.com/liblaf)
+
+### 🛠 Builds
+
+- **tooling:** unify automation around nox and uv - [b41aefa](https://github.com/liblaf/pretty/commit/b41aefaa2c2db1265390481e143b32402a397431) by [@liblaf](https://github.com/liblaf)
+
+### ❤️ Contributors
+
+- [@liblaf](https://github.com/liblaf)
+
 ## [0.1.0](https://github.com/liblaf/pretty/releases/tag/v0.1.0) - 2026-03-16
 
 ### ✨ Features
@@ -23,4 +37,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ❤️ Contributors
 
+- [@liblaf[bot]](https://github.com/apps/liblaf) made their first contribution in [#4](https://github.com/liblaf/pretty/pull/4)
 - [@liblaf](https://github.com/liblaf) made their first contribution
