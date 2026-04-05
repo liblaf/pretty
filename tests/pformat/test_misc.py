@@ -1,4 +1,6 @@
-from liblaf.pretty import pformat
+from rich.text import Text
+
+from liblaf.pretty import PrettyOptions, SpecLeaf, pformat
 
 
 def test_scalars() -> None:
@@ -14,3 +16,15 @@ def test_repr() -> None:
             return "REPR"
 
     assert pformat(Repr()) == "REPR\n"
+
+
+def test_text_inputs_are_copied() -> None:
+    indent = Text("-> ")
+    options = PrettyOptions(indent=indent)
+    indent.append("mutated")
+    assert options.indent.plain == "-> "
+
+    text = Text("leaf")
+    spec = SpecLeaf(cls=str, referable=False, text=text)
+    text.append(" mutated")
+    assert spec.text.plain == "leaf"

@@ -1,87 +1,50 @@
-from ._compile import (
-    BREAK,
-    COLON,
-    COMMA,
-    EMPTY,
-    EQUAL,
-    INDENT,
-    Item,
-    ItemKeyValue,
-    ItemValue,
-    Lowered,
-    LoweredContainer,
-    LoweredLeaf,
-    Writer,
-)
-from ._config import PrettyConfig, PrettyConfigState, PrettyOptions, config
-from ._lower import (
-    LowerContext,
-    Traced,
-    TracedContainer,
-    TracedLeaf,
-    TracedReference,
-    TracedReferent,
-    TracedReferentLeaf,
-)
+from collections.abc import Callable
+from typing import Any, overload
+
+from ._describe._registry import DescribeFunc, DescribeTypeHandler
 from ._main import pdoc, pformat, pprint
-from ._trace import (
-    ELLIPSIS,
-    FALSE,
-    NONE,
-    TRUE,
-    TraceContext,
-    TraceHandler,
-    TraceRegistry,
-    trace,
-    trace_dataclass,
-    trace_mapping,
-    trace_sequence,
+from ._options import PrettyOptions
+from ._spec import (
+    PrettyPrintable,
+    Spec,
+    SpecContainer,
+    SpecField,
+    SpecItem,
+    SpecKeyValue,
+    SpecLeaf,
+    SpecValue,
 )
-from ._utils import has_ansi, text
-from ._version import __commit_id__, __version__, __version_tuple__
+
+@overload
+def register_type[F: DescribeTypeHandler[Any]](cls: type, handler: F) -> F: ...
+@overload
+def register_type[F: DescribeTypeHandler[Any]](
+    cls: type, handler: None = None
+) -> Callable[[F], F]: ...
+@overload
+def register_lazy[F: DescribeTypeHandler[Any]](
+    module: str, typename: str, handler: F
+) -> F: ...
+@overload
+def register_lazy[F: DescribeTypeHandler[Any]](
+    module: str, typename: str, handler: None = None
+) -> Callable[[F], F]: ...
+def register_func[F: DescribeFunc](handler: F) -> F: ...
 
 __all__ = [
-    "BREAK",
-    "COLON",
-    "COMMA",
-    "ELLIPSIS",
-    "EMPTY",
-    "EQUAL",
-    "FALSE",
-    "INDENT",
-    "NONE",
-    "TRUE",
-    "Item",
-    "ItemKeyValue",
-    "ItemValue",
-    "LowerContext",
-    "Lowered",
-    "LoweredContainer",
-    "LoweredLeaf",
-    "PrettyConfig",
-    "PrettyConfigState",
     "PrettyOptions",
-    "TraceContext",
-    "TraceHandler",
-    "TraceRegistry",
-    "Traced",
-    "TracedContainer",
-    "TracedLeaf",
-    "TracedReference",
-    "TracedReferent",
-    "TracedReferentLeaf",
-    "Writer",
-    "__commit_id__",
-    "__version__",
-    "__version_tuple__",
-    "config",
-    "has_ansi",
+    "PrettyPrintable",
+    "Spec",
+    "SpecContainer",
+    "SpecField",
+    "SpecItem",
+    "SpecKeyValue",
+    "SpecLeaf",
+    "SpecValue",
     "pdoc",
     "pformat",
     "pprint",
-    "text",
-    "trace",
-    "trace_dataclass",
-    "trace_mapping",
-    "trace_sequence",
+    "register_func",
+    "register_lazy",
+    "register_type",
 ]

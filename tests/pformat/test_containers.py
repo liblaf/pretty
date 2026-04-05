@@ -1,4 +1,4 @@
-from liblaf.pretty import pformat
+from liblaf.pretty import PrettyOptions, pformat
 
 
 def test_list() -> None:
@@ -24,12 +24,13 @@ def test_set() -> None:
 
 
 def test_frozenset() -> None:
+    assert pformat(frozenset()) == "frozenset()\n"
     assert pformat(frozenset({1, 2})) == "frozenset({1, 2})\n"
 
 
 def test_nested() -> None:
     assert (
-        pformat({"a": [1, 2, 3]}, max_width=13)
+        pformat({"a": [1, 2, 3]}, options=PrettyOptions(max_width=13))
         == """\
 {
 │   'a': [

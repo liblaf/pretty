@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import functools
 from collections.abc import Generator
@@ -19,7 +21,7 @@ class Segments(rich.segment.Segments):
 
 @attrs.define
 class Writer:
-    console: Console = attrs.field(factory=rich.get_console)
+    console: Console = attrs.field(factory=Console)
 
     def _default_options(self) -> ConsoleOptions:
         return self.console.options.update(
@@ -52,12 +54,12 @@ class Writer:
 
     @contextlib.contextmanager
     def indent(self, indent: Renderable) -> Generator[None]:
-        prev_prefix: Segments = self.prefix
-        self.prefix: Segments = self._render(self.prefix, indent)
+        previous_prefix: Segments = self.prefix
+        self.prefix = self._render(self.prefix, indent)
         try:
             yield
         finally:
-            self.prefix: Segments = prev_prefix
+            self.prefix = previous_prefix
 
     def write(self, *renderables: Renderable) -> RenderResult:
         segments: Segments = self._render(*renderables)
@@ -83,7 +85,6 @@ class Writer:
                 case Segment():
                     segments.append(renderable)
                 case Text():
-                    # hardcode these options for Text to render correctly
                     renderable.overflow = "ignore"
                     renderable.no_wrap = True
                     renderable.end = ""

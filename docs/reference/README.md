@@ -1,1 +1,1 @@
-# ::: liblaf-pretty
+# ::: liblaf.pretty
