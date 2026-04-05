@@ -20,6 +20,7 @@ def test_dict() -> None:
 
 
 def test_set() -> None:
+    assert pformat(set()) == "set()\n"
     assert pformat({1, 2}) == "{1, 2}\n"
 
 
@@ -38,5 +39,17 @@ def test_nested() -> None:
 │   │   3
 │   ]
 }
+"""
+    )
+
+
+def test_nested_value_keeps_flat_layout_when_it_fits_after_break() -> None:
+    assert (
+        pformat([0, [1, 2]], options=PrettyOptions(max_width=10))
+        == """\
+[
+│   0,
+│   [1, 2]
+]
 """
     )

@@ -65,8 +65,7 @@ class ItemValue(Item):
 
     def _fits_flat(self, writer: Writer) -> bool:
         return (
-            self.prefix.cell_len
-            + self.value.width_flat
+            self.value.width_flat
             + self.suffix.cell_len
             + self.value.annotation.cell_len
             <= writer.remaining_width

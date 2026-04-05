@@ -111,3 +111,27 @@ class NonReferablePretty:
 def test_nonreferable_nodes_never_collapse() -> None:
     shared = NonReferablePretty()
     assert pformat([shared, shared]) == "[CUSTOM, CUSTOM]\n"
+
+
+class MultilinePretty:
+    def __pretty__(self, _options: PrettyOptions) -> SpecLeaf:
+        return SpecLeaf(
+            cls=type(self),
+            id_=id(self),
+            referable=True,
+            text=Text("line1\nline2"),
+        )
+
+
+def test_multiline_references_keep_first_line_when_annotated() -> None:
+    shared = MultilinePretty()
+    shared_id: int = id(shared)
+    assert (
+        pformat([shared, shared], options=PrettyOptions(max_width=200))
+        == f"""\
+[
+│   line1  # <*MultilinePretty object at {shared_id:#x}>
+│   line2, <*MultilinePretty object at {shared_id:#x}>
+]
+"""
+    )

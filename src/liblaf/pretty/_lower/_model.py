@@ -94,10 +94,13 @@ class LoweredLeaf(Lowered):
 
     def render_break(self, writer: Writer, *, annotation: bool = True) -> RenderResult:
         if annotation and self.annotation:
-            yield from writer.write(self.lines[0].rstrip())
+            first_line = self.lines[0].copy()
+            first_line.rstrip()
+            yield from writer.write(first_line)
             yield from writer.write(self.annotation)
             yield from writer.ensure_newline()
-            yield from writer.write(Lines(self.lines[1:]))
+            for line in self.lines[1:]:
+                yield from writer.write(line)
         else:
             yield from writer.write(self.value)
 

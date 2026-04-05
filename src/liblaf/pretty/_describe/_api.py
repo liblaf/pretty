@@ -159,6 +159,11 @@ def _describe_set(obj: set[object], options: PrettyOptions) -> SpecContainer:
         referable=True,
         begin=Text("{", "repr.tag_start"),
         end=Text("}", "repr.tag_end"),
+        empty=Text.assemble(
+            ("set", "repr.tag_name"),
+            ("(", "repr.tag_start"),
+            (")", "repr.tag_end"),
+        ),
         items=tuple(obj),
         options=options,
     )
