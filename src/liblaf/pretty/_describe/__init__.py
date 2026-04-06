@@ -1,1 +1,0 @@
-"""Private describe package."""

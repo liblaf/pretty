@@ -30,7 +30,8 @@ dependencies = [
   "environs>=14.1",
   "fieldz>=0.1",
   "lazy-loader>=0.1",
-  "rich>=14.3"
+  "liblaf-conf>=0.1.0",
+  "rich>=14.3",
 ]
 dynamic = ["version"]
 

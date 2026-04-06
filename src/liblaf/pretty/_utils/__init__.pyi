@@ -1,6 +1,3 @@
-from ._text import has_ansi, text
+from ._text import as_text, has_ansi
 
-__all__ = [
-    "has_ansi",
-    "text",
-]
+__all__ = ["as_text", "has_ansi"]
