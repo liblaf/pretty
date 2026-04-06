@@ -1,4 +1,6 @@
-from liblaf.pretty import PrettyOptions, pformat
+from rich.text import Text
+
+from liblaf.pretty import PrettyOptions, SpecLeaf, pformat
 
 
 def test_list() -> None:
@@ -51,5 +53,47 @@ def test_nested_value_keeps_flat_layout_when_it_fits_after_break() -> None:
 │   0,
 │   [1, 2]
 ]
+"""
+    )
+
+
+def test_multiline_value_does_not_capture_following_sibling() -> None:
+    class Multi:
+        def __pretty__(self, _options: PrettyOptions) -> object:
+            return SpecLeaf(
+                cls=type(self),
+                referable=False,
+                text=Text("x\ny"),
+            )
+
+    assert (
+        pformat([Multi(), 2], options=PrettyOptions(max_width=200))
+        == """\
+[
+│   x
+│   y,
+│   2
+]
+"""
+    )
+
+
+def test_multiline_mapping_key_does_not_capture_following_items() -> None:
+    class Multi:
+        def __pretty__(self, _options: PrettyOptions) -> object:
+            return SpecLeaf(
+                cls=type(self),
+                referable=False,
+                text=Text("k1\nk2"),
+            )
+
+    assert (
+        pformat({Multi(): 1, "b": 2}, options=PrettyOptions(max_width=200))
+        == """\
+{
+│   k1
+│   k2: 1,
+│   'b': 2
+}
 """
     )

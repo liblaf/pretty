@@ -1,8 +1,10 @@
+import logging
 import sys
 import types
 from collections.abc import Iterable
 
 import attrs
+import pytest
 from rich.console import Console
 from rich.text import Text
 
@@ -18,6 +20,7 @@ from liblaf.pretty import (
     register_lazy,
     register_type,
 )
+from liblaf.pretty._describe._registry import DescribeRegistry
 
 
 def test_public_exports() -> None:
@@ -135,3 +138,25 @@ def test_register_func_runs_after_type_registration() -> None:
         return SpecLeaf(cls=int, referable=False, text=Text("INT-FUNC"))
 
     assert pformat(1) == "1\n"
+
+
+def test_missing_lazy_registration_logs_once_and_is_removed(
+    caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module_name = "tests.pretty_missing_lazy_module"
+    module = types.ModuleType(module_name)
+    monkeypatch.setitem(sys.modules, module_name, module)
+    registry = DescribeRegistry()
+
+    @registry.register_lazy(module_name, "Missing")
+    def _describe_missing(_obj: object, _options: PrettyOptions) -> SpecLeaf:
+        return SpecLeaf(cls=object, referable=False, text=Text("MISSING"))
+
+    with caplog.at_level(logging.WARNING):
+        assert registry(1, PrettyOptions()) is None
+        assert registry(1, PrettyOptions()) is None
+
+    assert registry.handlers_lazy == {}
+    assert [record.message for record in caplog.records] == [
+        f"failed to resolve lazy pretty handler for {module_name}.Missing"
+    ]

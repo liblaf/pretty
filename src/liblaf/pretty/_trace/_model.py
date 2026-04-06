@@ -2,15 +2,25 @@ from __future__ import annotations
 
 import abc
 from collections import Counter
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import attrs
 from rich.text import Text
 
-if TYPE_CHECKING:
-    from liblaf.pretty._lower._api import LowerableItem
-    from liblaf.pretty._lower._items import Item
-    from liblaf.pretty._lower._model import LowerContext, Lowered
+from liblaf.pretty._lower._api import (
+    LowerableItem,
+    _annotate,
+    _lower_items,
+    _lower_node,
+)
+from liblaf.pretty._lower._const import COLON, EQUAL
+from liblaf.pretty._lower._items import Item, ItemKeyValue, ItemValue
+from liblaf.pretty._lower._model import (
+    LowerContext,
+    Lowered,
+    LoweredContainer,
+    LoweredLeaf,
+)
 
 
 @attrs.define
@@ -36,9 +46,6 @@ class TracedLeaf(Traced):
     text: Text = attrs.field(converter=lambda value: value.copy())
 
     def lower(self, ctx: LowerContext) -> Lowered:
-        from liblaf.pretty._lower._api import _annotate
-        from liblaf.pretty._lower._model import LoweredLeaf
-
         lowered = LoweredLeaf(value=self.text)
         return _annotate(self, lowered, ctx)
 
@@ -48,8 +55,6 @@ class TracedReference(Traced):
     obj_id: int
 
     def lower(self, ctx: LowerContext) -> Lowered:
-        from liblaf.pretty._lower._model import LoweredLeaf
-
         return LoweredLeaf(value=ctx.make_ref_text(self.cls, self.obj_id))
 
 
@@ -66,9 +71,6 @@ class TracedValue(TracedItem):
     value: Traced | None = None
 
     def lower(self, ctx: LowerContext) -> Item:
-        from liblaf.pretty._lower._api import _lower_node
-        from liblaf.pretty._lower._items import ItemValue
-
         if self.value is None:
             msg = "unresolved traced value"
             raise RuntimeError(msg)
@@ -81,11 +83,6 @@ class TracedField(TracedItem):
     value: Traced | None = None
 
     def lower(self, ctx: LowerContext) -> Item:
-        from liblaf.pretty._lower._api import _lower_node
-        from liblaf.pretty._lower._const import EQUAL
-        from liblaf.pretty._lower._items import ItemKeyValue
-        from liblaf.pretty._lower._model import LoweredLeaf
-
         if self.value is None:
             msg = "unresolved traced field"
             raise RuntimeError(msg)
@@ -102,10 +99,6 @@ class TracedKeyValue(TracedItem):
     value: Traced | None = None
 
     def lower(self, ctx: LowerContext) -> Item:
-        from liblaf.pretty._lower._api import _lower_node
-        from liblaf.pretty._lower._const import COLON
-        from liblaf.pretty._lower._items import ItemKeyValue
-
         if self.key is None or self.value is None:
             msg = "unresolved traced key/value"
             raise RuntimeError(msg)
@@ -125,9 +118,6 @@ class TracedContainer(Traced):
     force_comma_if_single: bool = False
 
     def lower(self, ctx: LowerContext) -> Lowered:
-        from liblaf.pretty._lower._api import _annotate, _lower_items
-        from liblaf.pretty._lower._model import LoweredContainer, LoweredLeaf
-
         if not self.items:
             lowered = LoweredLeaf(value=self.empty)
         else:

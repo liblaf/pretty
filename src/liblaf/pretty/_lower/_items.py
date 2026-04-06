@@ -81,6 +81,7 @@ class ItemValue(Item):
     def _render_break(self, writer: Writer) -> RenderResult:
         yield from self.value.render_break(writer)
         yield from writer.write(self.suffix)
+        yield from writer.ensure_newline()
 
 
 @attrs.define(kw_only=True)
@@ -170,6 +171,7 @@ class ItemKeyValue(Item):
         yield from writer.write(self.sep)
         yield from self.value.render_break(writer)
         yield from writer.write(self.suffix)
+        yield from writer.ensure_newline()
 
     def _fits_break_flat(self, writer: Writer) -> bool:
         return (
@@ -177,21 +179,29 @@ class ItemKeyValue(Item):
             + self.sep.cell_len
             + self.value.width_flat
             + self.suffix.cell_len
+            + self.key.annotation.cell_len
             + self.value.annotation.cell_len
             <= writer.remaining_width
         )
 
     def _render_break_flat(self, writer: Writer) -> RenderResult:
-        yield from self.key.render_break(writer)
+        key_annotation_inline: bool = not self.key.is_container
+        yield from self.key.render_break(writer, annotation=not key_annotation_inline)
         yield from writer.write(self.sep)
         yield from self.value.render_flat(writer)
         yield from writer.write(self.suffix)
+        if key_annotation_inline and self.key.annotation:
+            yield from writer.write(self.key.annotation)
         if self.value.annotation:
             yield from writer.write(self.value.annotation)
-            yield from writer.ensure_newline()
+        yield from writer.ensure_newline()
 
     def _render_break_break(self, writer: Writer) -> RenderResult:
-        yield from self.key.render_break(writer)
+        key_annotation_inline: bool = not self.key.is_container
+        yield from self.key.render_break(writer, annotation=not key_annotation_inline)
         yield from writer.write(self.sep)
         yield from self.value.render_break(writer)
         yield from writer.write(self.suffix)
+        if key_annotation_inline and self.key.annotation:
+            yield from writer.write(self.key.annotation)
+        yield from writer.ensure_newline()

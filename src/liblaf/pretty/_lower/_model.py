@@ -60,6 +60,10 @@ class Lowered(abc.ABC):
     def width_flat(self) -> int | float:
         raise NotImplementedError
 
+    @property
+    def is_container(self) -> bool:
+        return False
+
     @abc.abstractmethod
     def render_flat(self, writer: Writer, *, annotation: bool = False) -> RenderResult:
         raise NotImplementedError
@@ -127,6 +131,10 @@ class LoweredContainer(Lowered):
             + sum(item.width_inline for item in self.items)
             + self.end.cell_len
         )
+
+    @property
+    def is_container(self) -> bool:
+        return True
 
     def render_flat(self, writer: Writer, *, annotation: bool = False) -> RenderResult:
         yield from writer.write(self.begin)

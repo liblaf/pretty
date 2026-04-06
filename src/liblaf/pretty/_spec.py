@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import functools
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Protocol
 
@@ -116,8 +117,6 @@ class SpecValue(SpecItem):
         depth: int,
         factory: TraceFactory,
     ) -> None:
-        import functools
-
         traced_item = factory.make_value_item()
         container.items.append(traced_item)
         queue.append(
@@ -138,8 +137,6 @@ class SpecField(SpecItem):
         depth: int,
         factory: TraceFactory,
     ) -> None:
-        import functools
-
         traced_item = factory.make_field_item(name=self.name)
         container.items.append(traced_item)
         queue.append(
@@ -160,8 +157,6 @@ class SpecKeyValue(SpecItem):
         depth: int,
         factory: TraceFactory,
     ) -> None:
-        import functools
-
         traced_item = factory.make_key_value_item()
         container.items.append(traced_item)
         queue.append((depth, self.key, functools.partial(setattr, traced_item, "key")))

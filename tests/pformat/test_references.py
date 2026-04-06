@@ -131,7 +131,49 @@ def test_multiline_references_keep_first_line_when_annotated() -> None:
         == f"""\
 [
 │   line1  # <*MultilinePretty object at {shared_id:#x}>
-│   line2, <*MultilinePretty object at {shared_id:#x}>
+│   line2,
+│   <*MultilinePretty object at {shared_id:#x}>
 ]
+"""
+    )
+
+
+def test_annotated_mapping_key_keeps_separator_on_same_line() -> None:
+    class KeyPretty:
+        def __pretty__(self, _options: PrettyOptions) -> SpecLeaf:
+            return SpecLeaf(
+                cls=type(self),
+                id_=id(self),
+                referable=True,
+                text=Text("K"),
+            )
+
+    shared = KeyPretty()
+    shared_id: int = id(shared)
+    assert (
+        pformat({shared: 1, "other": shared}, options=PrettyOptions(max_width=200))
+        == f"""\
+{{
+│   K: 1,  # <*KeyPretty object at {shared_id:#x}>
+│   'other': <*KeyPretty object at {shared_id:#x}>
+}}
+"""
+    )
+
+
+def test_annotated_container_mapping_key_renders_annotation_after_opening_delimiter() -> (
+    None
+):
+    shared = (1,)
+    shared_id: int = id(shared)
+    assert (
+        pformat({shared: 1, "other": shared}, options=PrettyOptions(max_width=200))
+        == f"""\
+{{
+│   (  # <*tuple object at {shared_id:#x}>
+│   │   1,
+│   ): 1,
+│   'other': <*tuple object at {shared_id:#x}>
+}}
 """
     )

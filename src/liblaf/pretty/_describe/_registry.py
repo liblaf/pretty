@@ -99,7 +99,12 @@ class DescribeRegistry:
             try:
                 cls: type = getattr(module, typename)
             except AttributeError:
-                logger.exception("")
+                logger.warning(
+                    "failed to resolve lazy pretty handler for %s.%s",
+                    module_name,
+                    typename,
+                )
+                del self.handlers_lazy[(module_name, typename)]
             else:
                 self.register_type(cls, handler)
                 del self.handlers_lazy[(module_name, typename)]
