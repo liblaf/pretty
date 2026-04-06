@@ -7,12 +7,12 @@ from rich.console import RenderResult
 from rich.containers import Lines
 from rich.text import Text
 
-from ._lowered import Lowered
+from ._layout import LoweredLayout
 from ._writer import Writer
 
 
-@attrs.define
-class LoweredLeaf(Lowered):
+@attrs.frozen
+class LoweredLeaf(LoweredLayout):
     value: Text
 
     @functools.cached_property

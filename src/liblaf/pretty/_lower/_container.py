@@ -6,16 +6,16 @@ from rich.console import RenderResult
 from rich.text import Text
 
 from ._item import LoweredItem
-from ._lowered import Lowered
+from ._layout import LoweredLayout
 from ._writer import Writer
 
 
-@attrs.define
-class LoweredContainer(Lowered):
+@attrs.frozen
+class LoweredContainer(LoweredLayout):
     begin: Text
+    items: list[LoweredItem]
     end: Text
     indent: Text
-    items: list[LoweredItem]
 
     @functools.cached_property
     @override

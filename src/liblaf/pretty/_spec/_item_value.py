@@ -7,6 +7,7 @@ from liblaf.pretty._trace import TracedItemValue
 from ._context import TraceContext
 from ._item import SpecItem
 from ._spec import Spec
+from ._spec_leaf import SPEC_ELLIPSIS
 
 
 @attrs.define
@@ -18,3 +19,6 @@ class SpecItemValue(SpecItem):
         return TracedItemValue(
             prefix=self.prefix, value=self.value.trace(ctx), suffix=self.suffix
         )
+
+
+SPEC_ITEM_ELLIPSIS = SpecItemValue(SPEC_ELLIPSIS)

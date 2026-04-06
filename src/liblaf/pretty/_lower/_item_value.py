@@ -1,17 +1,18 @@
 import functools
 import math
+from typing import override
 
 import attrs
 from rich.console import RenderResult
 
 from ._item import LoweredItem
-from ._lowered import Lowered
+from ._layout import LoweredLayout
 from ._writer import Writer
 
 
 @attrs.frozen
 class LoweredItemValue(LoweredItem):
-    value: Lowered
+    value: LoweredLayout
 
     @functools.cached_property
     def width_inline(self) -> int | float:
@@ -19,6 +20,7 @@ class LoweredItemValue(LoweredItem):
             return math.inf
         return self.prefix.cell_len + self.value.width_flat + self.suffix.cell_len
 
+    @override
     def render(self, writer: Writer) -> RenderResult:
         if self._fits_inline(writer):
             yield from self._render_inline(writer)
