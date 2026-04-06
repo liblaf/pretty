@@ -6,7 +6,7 @@ from rich.text import Text
 from liblaf.pretty import PrettyOptions, SpecContainer, SpecField, pformat
 
 
-@attrs.frozen(slots=True, kw_only=True)
+@attrs.frozen(kw_only=True)
 class SelfRefSpec(SpecContainer):
     owner: "SelfReferential"
 

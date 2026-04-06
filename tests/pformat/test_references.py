@@ -74,7 +74,7 @@ class CountingPretty:
         return self.spec
 
 
-@attrs.frozen(slots=True, kw_only=True)
+@attrs.frozen(kw_only=True)
 class CountingSpec(SpecContainer):
     owner: CountingPretty
 

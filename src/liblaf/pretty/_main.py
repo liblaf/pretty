@@ -1,7 +1,9 @@
+from typing import cast
+
 from rich.console import Console, RenderableType
 
 from ._describe._api import describe
-from ._lower._api import lower
+from ._lower._api import LowerableDocument, lower
 from ._options import PrettyOptions
 from ._trace._api import trace
 
@@ -10,7 +12,7 @@ def pdoc(obj: object, /, *, options: PrettyOptions | None = None) -> RenderableT
     resolved: PrettyOptions = options or PrettyOptions()
     spec = describe(obj, resolved)
     traced = trace(spec, resolved)
-    return lower(traced, resolved)
+    return lower(cast("LowerableDocument", traced), resolved)
 
 
 def pformat(

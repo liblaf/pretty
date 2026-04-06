@@ -52,7 +52,7 @@ def _repr_text(obj: object, options: PrettyOptions) -> Text:
     return _HIGHLIGHTER(text)
 
 
-@attrs.frozen(slots=True, kw_only=True)
+@attrs.frozen(kw_only=True)
 class _SequenceSpec(SpecContainer):
     items: tuple[Any, ...]
     options: PrettyOptions
@@ -62,13 +62,13 @@ class _SequenceSpec(SpecContainer):
             yield SpecValue(value=describe(value, self.options))
 
 
-@attrs.frozen(slots=True, kw_only=True)
+@attrs.frozen(kw_only=True)
 class _TupleSpec(_SequenceSpec):
     def force_comma_if_single(self) -> bool:
         return True
 
 
-@attrs.frozen(slots=True, kw_only=True)
+@attrs.frozen(kw_only=True)
 class _MappingSpec(SpecContainer):
     items: tuple[tuple[Any, Any], ...]
     options: PrettyOptions

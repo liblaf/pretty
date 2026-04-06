@@ -22,7 +22,7 @@ def _validate_positive(
         raise ValueError(msg)
 
 
-@attrs.frozen(slots=True, hash=False)
+@attrs.frozen(hash=False)
 class PrettyOptions:
     indent: Text = attrs.field(factory=_default_indent, converter=_to_text)
     max_dict: int = attrs.field(default=4, validator=_validate_positive)

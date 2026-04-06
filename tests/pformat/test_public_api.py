@@ -52,7 +52,7 @@ def test_pretty_options_defaults() -> None:
     assert options.max_width == 88
 
 
-@attrs.frozen(slots=True, kw_only=True)
+@attrs.frozen(kw_only=True)
 class GreetingSpec(SpecContainer):
     child: SpecLeaf
 
