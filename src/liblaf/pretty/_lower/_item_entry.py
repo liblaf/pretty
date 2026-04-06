@@ -7,15 +7,15 @@ from rich.console import RenderResult
 from rich.text import Text
 
 from ._item import LoweredItem
-from ._layout import LoweredLayout
+from ._object import LoweredObject
 from ._writer import Writer
 
 
 @attrs.frozen
 class LoweredItemEntry(LoweredItem):
-    key: LoweredLayout
+    key: LoweredObject
     sep: Text
-    value: LoweredLayout
+    value: LoweredObject
 
     @functools.cached_property
     def width_inline(self) -> int | float:

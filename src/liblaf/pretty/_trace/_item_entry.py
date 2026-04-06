@@ -3,19 +3,19 @@ from typing import override
 import attrs
 from rich.text import Text
 
-from liblaf.pretty._const import COMMA
 from liblaf.pretty._lower import LoweredItemEntry
 
 from ._context import LowerContext
 from ._item import TracedItem
-from ._traced import Traced
+from ._object import TracedObject
+from ._ref import TracedRef
 
 
-@attrs.frozen
+@attrs.define
 class TracedItemEntry(TracedItem):
-    key: Traced
-    value: Traced
-    sep: Text = COMMA
+    key: TracedObject | TracedRef
+    sep: Text
+    value: TracedObject | TracedRef
 
     @override
     def lower(self, ctx: LowerContext) -> LoweredItemEntry:

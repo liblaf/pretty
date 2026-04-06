@@ -6,12 +6,12 @@ from rich.console import RenderResult
 from rich.text import Text
 
 from ._item import LoweredItem
-from ._layout import LoweredLayout
+from ._object import LoweredObject
 from ._writer import Writer
 
 
 @attrs.frozen
-class LoweredContainer(LoweredLayout):
+class LoweredContainer(LoweredObject):
     begin: Text
     items: list[LoweredItem]
     end: Text

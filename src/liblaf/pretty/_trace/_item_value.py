@@ -6,12 +6,13 @@ from liblaf.pretty._lower import LoweredItemValue
 
 from ._context import LowerContext
 from ._item import TracedItem
-from ._traced import Traced
+from ._object import TracedObject
+from ._ref import TracedRef
 
 
-@attrs.frozen
+@attrs.define
 class TracedItemValue(TracedItem):
-    value: Traced
+    value: TracedObject | TracedRef
 
     @override
     def lower(self, ctx: LowerContext) -> LoweredItemValue:

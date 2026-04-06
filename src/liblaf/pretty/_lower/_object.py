@@ -13,7 +13,7 @@ from ._writer import Writer
 
 
 @attrs.frozen
-class LoweredLayout(Lowered):
+class LoweredObject(Lowered):
     annotation: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override

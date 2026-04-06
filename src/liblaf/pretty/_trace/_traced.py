@@ -7,10 +7,7 @@ from liblaf.pretty._lower import Lowered
 from ._context import LowerContext
 
 
-@attrs.frozen
+@attrs.define
 class Traced(abc.ABC):
-    cls: type
-    id_: int
-
     @abc.abstractmethod
     def lower(self, ctx: LowerContext) -> Lowered: ...
