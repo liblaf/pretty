@@ -15,6 +15,7 @@ from ._traced import Traced
 @attrs.define
 class TracedObject(Traced):
     ref: TraceId | None = attrs.field(default=None, kw_only=True)
+    annotation: bool = attrs.field(default=False, kw_only=True)
 
     @override
     @abc.abstractmethod

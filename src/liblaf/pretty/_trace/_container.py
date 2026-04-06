@@ -28,3 +28,6 @@ class TracedContainer(TracedObject):
             annotation=annotation,
         )
         return lowered
+
+    def append(self, traced: TracedItem) -> None:
+        self.items.append(traced)

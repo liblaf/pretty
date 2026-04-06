@@ -26,3 +26,9 @@ class TracedItemEntry(TracedItem):
             value=self.value.lower(ctx),
             suffix=self.suffix,
         )
+
+    def attach_key(self, traced: TracedObject | TracedRef) -> None:
+        self.key = traced
+
+    def attach_value(self, traced: TracedObject | TracedRef) -> None:
+        self.value = traced

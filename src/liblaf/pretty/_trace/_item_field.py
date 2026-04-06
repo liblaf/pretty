@@ -26,3 +26,6 @@ class TracedItemField(TracedItem):
             value=self.value.lower(ctx),
             suffix=self.suffix,
         )
+
+    def attach(self, traced: TracedObject | TracedRef) -> None:
+        self.value = traced
