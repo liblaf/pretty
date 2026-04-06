@@ -1,14 +1,16 @@
-from collections import Counter
+from __future__ import annotations
+
+from collections import deque
 from collections.abc import Callable
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import attrs
 
 from liblaf.pretty._conf import PrettyOptions, config
-from liblaf.pretty._trace import Traced, TracedObject, TracedRef
+from liblaf.pretty._trace import LowerContext, Traced, TracedObject
 
-from ._object import SpecObject
-from ._spec import Spec
+if TYPE_CHECKING:
+    from ._spec import Spec
 
 
 class Pending[T: Traced](NamedTuple):
@@ -20,7 +22,7 @@ class Pending[T: Traced](NamedTuple):
 @attrs.define
 class TraceContext:
     options: PrettyOptions = attrs.field(factory=config.dump)
-    queue: list[Pending] = attrs.field(factory=list)
+    queue: deque[Pending] = attrs.field(factory=deque)
     traced: dict[int, TracedObject] = attrs.field(factory=dict)
 
     def enqueue[T: Traced](
@@ -28,9 +30,13 @@ class TraceContext:
     ) -> None:
         self.queue.append(Pending(spec, depth, attach))
 
-    def visit(self, spec: SpecObject) -> TracedRef | None:
-        if spec.ref is None or spec.ref.id_ not in self.traced:
-            return None
-        anchor: TracedObject = self.traced[spec.ref.id_]
-        anchor.ref = spec.ref
-        return TracedRef(spec.ref)
+    def finish(self) -> LowerContext:
+        # TODO: handle typenames
+        return LowerContext(typenames={list: ""})
+
+    def trace[T: Traced](self, spec: Spec[T]) -> T:
+        traced: Traced = spec.trace(self, depth=0)
+        while self.queue:
+            spec, depth, attach = self.queue.popleft()
+            attach(spec.trace(self, depth))
+        return traced

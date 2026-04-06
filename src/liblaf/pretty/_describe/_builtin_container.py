@@ -3,29 +3,20 @@ from typing import Any
 
 from rich.text import Text
 
-from liblaf.pretty._const import COMMA
-from liblaf.pretty._spec import Spec, SpecContainer, SpecItem, SpecItemValue
+from liblaf.pretty._spec import SpecContainer, SpecItem, SpecItemValue, SpecObject
 from liblaf.pretty._trace import TraceId
 
 from ._context import DescribeContext
+from ._utils import add_separators, truncate
 
 
-def _describe_list(obj: list[Any], ctx: DescribeContext) -> Spec:
+def _describe_list(obj: list[Any], ctx: DescribeContext) -> SpecContainer:
     def lazy_items() -> Generator[SpecItem]:
-        if ctx.depth > ctx.options.max_depth:
-            items: list[SpecItem] = [...]
-        else:
-            items: list[SpecItem] = []
-            for item in obj:
-                if len(items) > ctx.options.max_list:
-                    items.append(...)
-                    break
-                items.append(SpecItemValue(ctx.describe(item)))
-        for i, item in enumerate(items):
-            if i > 0:
-                item.prefix = COMMA
-            if i < len(items) - 1:
-                item.suffix = COMMA
+        items: list[SpecItem] = []
+        for item in truncate(obj, ctx.options.max_list, fill=...):
+            spec: SpecObject = ctx.describe(item)
+            items.append(SpecItemValue(spec))
+        items: list[SpecItem] = add_separators(items)
         yield from items
 
     spec = SpecContainer(

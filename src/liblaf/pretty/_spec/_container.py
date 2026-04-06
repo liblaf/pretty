@@ -5,7 +5,12 @@ import attrs
 from rich.text import Text
 
 from liblaf.pretty._const import INDENT
-from liblaf.pretty._trace import TracedContainer, TracedLeaf, TracedObject, TracedRef
+from liblaf.pretty._trace import (
+    TracedContainer,
+    TracedItemValue,
+    TracedObject,
+    TracedRef,
+)
 
 from ._context import TraceContext
 from ._item import SpecItem
@@ -27,18 +32,21 @@ class SpecContainer(SpecObject[TracedObject | TracedRef]):
     indent: Text = attrs.field(default=INDENT, kw_only=True)
 
     @override
-    def trace(self, ctx: TraceContext, depth: int) -> TracedObject | TracedRef:
-        traced: TracedRef | None = ctx.visit(self)
-        if traced is not None:
+    def trace(self, ctx: TraceContext, depth: int) -> TracedContainer | TracedRef:
+        if (traced := self.visited(ctx)) is not None:
             return traced
-        if self.items:
-            traced: TracedContainer = TracedContainer(
-                begin=self.begin, items=[], end=self.end, indent=self.indent
-            )
+        traced: TracedContainer = TracedContainer(
+            begin=self.begin,
+            items=[],
+            end=self.end,
+            indent=self.indent,
+            empty=self.empty,
+            ref=self.ref,
+        )
+        if depth < ctx.options.max_level:
             for item in self.items:
-                ctx.enqueue(item, depth + 1, traced.append)
+                ctx.enqueue(item, depth + 1, traced.items.append)
         else:
-            traced: TracedLeaf = TracedLeaf(self.empty)
-        if self.ref is not None:
-            ctx.traced[self.ref.id_] = traced
+            traced.items = [TracedItemValue.ellipsis()]
+        ctx.traced[self.ref.id_] = traced
         return traced

@@ -5,6 +5,7 @@ from ._item_entry import SpecItemEntry
 from ._item_field import SpecItemField
 from ._item_value import SpecItemValue
 from ._leaf import SpecLeaf
+from ._object import SpecObject
 from ._spec import Spec
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "SpecItemField",
     "SpecItemValue",
     "SpecLeaf",
+    "SpecObject",
     "TraceContext",
 ]

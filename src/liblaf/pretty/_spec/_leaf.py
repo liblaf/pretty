@@ -1,9 +1,10 @@
-from typing import override
+from typing import Self, override
 
 import attrs
 from rich.text import Text
 
-from liblaf.pretty._trace import TracedLeaf, TracedObject, TracedRef
+from liblaf.pretty._const import ELLIPSIS
+from liblaf.pretty._trace import TracedLeaf, TracedRef, TraceId
 
 from ._context import TraceContext
 from ._object import SpecObject
@@ -13,13 +14,14 @@ from ._object import SpecObject
 class SpecLeaf(SpecObject[TracedLeaf | TracedRef]):
     value: Text
 
+    @classmethod
+    def ellipsis(cls) -> Self:
+        return cls(ELLIPSIS, referencable=False, ref=TraceId.from_obj(...))
+
     @override
     def trace(self, ctx: TraceContext, depth: int) -> TracedLeaf | TracedRef:
-        if self.ref is not None and self.ref.id_ in ctx.traced:
-            anchor: TracedObject = ctx.traced[self.ref.id_]
-            anchor.ref = self.ref
-            return TracedRef(self.ref)
-        traced = TracedLeaf(self.value)
-        if self.ref is not None:
-            ctx.traced[self.ref.id_] = traced
+        if (traced := self.visited(ctx)) is not None:
+            return traced
+        traced: TracedLeaf = TracedLeaf(self.value, ref=self.ref)
+        ctx.traced[self.ref.id_] = traced
         return traced
