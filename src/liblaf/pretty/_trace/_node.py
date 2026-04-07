@@ -22,8 +22,8 @@ class TracedContainer(Traced):
     items: list[TracedItem]
     end: Text
     indent: Text
-    has_ref: bool
     ref: Ref
+    has_ref: bool = attrs.field(default=False, kw_only=True)
 
     def _default_empty(self) -> Text:
         return self.begin + self.end
@@ -54,8 +54,8 @@ class TracedContainer(Traced):
 @attrs.define
 class TracedLeaf(Traced):
     value: Text
-    has_ref: bool
     ref: Ref
+    has_ref: bool = attrs.field(default=False, kw_only=True)
 
     @classmethod
     def ellipsis(cls) -> Self:

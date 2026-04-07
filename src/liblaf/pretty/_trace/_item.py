@@ -6,7 +6,7 @@ import attrs
 from rich.text import Text
 
 from liblaf.pretty._const import COLON, EMPTY, EQUAL
-from liblaf.pretty._lower import LoweredItemEntry, LoweredItemValue, LoweredLeaf
+from liblaf.pretty._lower import LoweredEntryItem, LoweredLeaf, LoweredValueItem
 
 from ._base import Traced
 from ._context import LowerContext
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @attrs.define
-class TracedEntry(Traced):
+class TracedDictItem(Traced):
     prefix: Text = attrs.field(default=EMPTY, kw_only=True)
     key: TracedNode
     sep: Text = attrs.field(default=COLON, kw_only=True)
@@ -24,8 +24,8 @@ class TracedEntry(Traced):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override
-    def lower(self, ctx: LowerContext) -> LoweredItemEntry:
-        return LoweredItemEntry(
+    def lower(self, ctx: LowerContext) -> LoweredEntryItem:
+        return LoweredEntryItem(
             prefix=self.prefix,
             key=self.key.lower(ctx),
             sep=self.sep,
@@ -41,7 +41,7 @@ class TracedEntry(Traced):
 
 
 @attrs.define
-class TracedField(Traced):
+class TracedNamedItem(Traced):
     prefix: Text = attrs.field(default=EMPTY, kw_only=True)
     name: Text
     sep: Text = attrs.field(default=EQUAL, kw_only=True)
@@ -49,8 +49,8 @@ class TracedField(Traced):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override
-    def lower(self, ctx: LowerContext) -> LoweredItemEntry:
-        return LoweredItemEntry(
+    def lower(self, ctx: LowerContext) -> LoweredEntryItem:
+        return LoweredEntryItem(
             prefix=self.prefix,
             key=LoweredLeaf(self.name),
             sep=self.sep,
@@ -63,14 +63,20 @@ class TracedField(Traced):
 
 
 @attrs.define
-class TracedElem(Traced):
+class TracedValueItem(Traced):
     prefix: Text = attrs.field(default=EMPTY, kw_only=True)
     value: TracedNode
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
+    @classmethod
+    def ellipsis(cls) -> TracedValueItem:
+        from ._node import TracedLeaf
+
+        return cls(prefix=EMPTY, value=TracedLeaf.ellipsis(), suffix=Text("..."))
+
     @override
-    def lower(self, ctx: LowerContext) -> LoweredItemValue:
-        return LoweredItemValue(
+    def lower(self, ctx: LowerContext) -> LoweredValueItem:
+        return LoweredValueItem(
             prefix=self.prefix, value=self.value.lower(ctx), suffix=self.suffix
         )
 
@@ -78,4 +84,4 @@ class TracedElem(Traced):
         self.value = traced
 
 
-type TracedItem = TracedEntry | TracedField | TracedElem
+type TracedItem = TracedDictItem | TracedNamedItem | TracedValueItem

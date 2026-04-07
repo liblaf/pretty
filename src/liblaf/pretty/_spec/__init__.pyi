@@ -1,21 +1,16 @@
-from ._container import SpecContainer
+from ._base import Spec
 from ._context import TraceContext
-from ._item import SpecItem
-from ._item_entry import SpecItemEntry
-from ._item_field import SpecItemField
-from ._item_value import SpecItemValue
-from ._leaf import SpecLeaf
-from ._object import SpecObject
-from ._spec import Spec
+from ._item import SpecDictItem, SpecItem, SpecNamedItem, SpecValueItem
+from ._node import SpecContainer, SpecLeaf, SpecNode
 
 __all__ = [
     "Spec",
     "SpecContainer",
+    "SpecDictItem",
     "SpecItem",
-    "SpecItemEntry",
-    "SpecItemField",
-    "SpecItemValue",
     "SpecLeaf",
-    "SpecObject",
+    "SpecNamedItem",
+    "SpecNode",
+    "SpecValueItem",
     "TraceContext",
 ]

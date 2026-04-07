@@ -1,6 +1,6 @@
 from ._base import Traced
 from ._context import LowerContext
-from ._item import TracedElem, TracedEntry, TracedField, TracedItem
+from ._item import TracedDictItem, TracedItem, TracedNamedItem, TracedValueItem
 from ._node import TracedContainer, TracedLeaf, TracedNode, TracedRef
 from ._ref import Ref
 
@@ -9,11 +9,11 @@ __all__ = [
     "Ref",
     "Traced",
     "TracedContainer",
-    "TracedElem",
-    "TracedEntry",
-    "TracedField",
+    "TracedDictItem",
     "TracedItem",
     "TracedLeaf",
+    "TracedNamedItem",
     "TracedNode",
     "TracedRef",
+    "TracedValueItem",
 ]
