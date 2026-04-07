@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from liblaf.pretty._const import ELLIPSIS
 from liblaf.pretty._spec import SpecLeaf, SpecNode
 
 if TYPE_CHECKING:

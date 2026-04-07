@@ -5,7 +5,7 @@ from rich.text import Text
 
 from liblaf.pretty._describe import DescribeContext, describe, describe_repr
 from liblaf.pretty._spec import SpecLeaf, SpecNode
-from liblaf.pretty._trace import TRUNCATED, Ref
+from liblaf.pretty._trace import Ref
 
 
 @describe.register_type(types.NoneType)
