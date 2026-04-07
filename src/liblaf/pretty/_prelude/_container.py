@@ -8,10 +8,13 @@ from liblaf.pretty._spec import SpecContainer, SpecItem
 
 
 @describe.register_type(dict)
-def _describe_dict(obj: dict, ctx: DescribeContext, depth: int) -> SpecContainer:
+def _describe_dict(
+    obj: dict[Any, Any], ctx: DescribeContext, depth: int
+) -> SpecContainer:
     if depth < ctx.options.max_level:
         items: list[SpecItem] = [
-            ctx.describe_dict_item(key, value) for key, value in ctx.truncate_dict(obj)
+            ctx.describe_dict_item(key, value)
+            for key, value in ctx.truncate_dict(obj.items())
         ]
         items: list[SpecItem] = ctx.add_separators(items)
     else:

@@ -15,6 +15,13 @@ type Renderable = RenderableType | Segment | None
 
 
 class Segments(rich.segment.Segments):
+    def __init__(
+        self, segments: Iterable[Segment] | None = None, *, new_lines: bool = False
+    ) -> None:
+        if segments is None:
+            segments = []
+        super().__init__(segments, new_lines=new_lines)
+
     @functools.cached_property
     def width(self) -> int:
         return sum(segment.cell_length for segment in self.segments)
@@ -34,7 +41,7 @@ class Writer:
     )
 
     column: int = attrs.field(default=0, init=False)
-    prefix: Segments = attrs.field(factory=lambda: Segments([]), init=False)
+    prefix: Segments = attrs.field(factory=Segments, init=False)
 
     @property
     def options(self) -> ConsoleOptions:

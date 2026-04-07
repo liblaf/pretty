@@ -87,7 +87,9 @@ class SpecLeaf(SpecNode):
 
 
 def _visit(ctx: TraceContext, spec: SpecContainer | SpecLeaf) -> TracedRef | None:
-    if spec.referencable and (traced := ctx.traced.get(spec.ref.id_)) is not None:
-        traced.has_ref = True
-        return TracedRef(spec.ref)
+    if spec.referencable:
+        ctx.types_.add(spec.ref.cls)
+        if (traced := ctx.traced.get(spec.ref.id_)) is not None:
+            traced.has_ref = True
+            return TracedRef(spec.ref)
     return None

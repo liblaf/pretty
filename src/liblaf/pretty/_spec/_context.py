@@ -9,6 +9,8 @@ import attrs
 from liblaf.pretty._conf import PrettyOptions, config
 from liblaf.pretty._trace import LowerContext, TracedContainer, TracedLeaf, TracedNode
 
+from ._typename import disambiguate_typenames
+
 if TYPE_CHECKING:
     from ._node import SpecNode
 
@@ -23,7 +25,10 @@ class Pending(NamedTuple):
 class TraceContext:
     options: PrettyOptions = attrs.field(factory=config.dump)
     queue: deque[Pending] = attrs.field(factory=deque)
-    traced: dict[int, TracedContainer | TracedLeaf] = attrs.field(factory=dict)
+    traced: dict[int, TracedContainer | TracedLeaf] = attrs.field(
+        factory=dict, repr=False
+    )
+    types_: set[type] = attrs.field(factory=set, repr=False)
 
     def enqueue(
         self, spec: SpecNode, depth: int, attach: Callable[[TracedNode], None]
@@ -31,12 +36,12 @@ class TraceContext:
         self.queue.append(Pending(spec, depth, attach))
 
     def finish(self) -> LowerContext:
-        # TODO: handle typenames
-        return LowerContext(typenames={list: ""})
+        return LowerContext(typenames=disambiguate_typenames(self.types_))
 
     def trace(self, spec: SpecNode, depth: int = 0) -> TracedNode:
-        traced: TracedNode = spec.trace(self, depth=depth)
+        traced_root: TracedNode = spec.trace(self, depth=depth)
         while self.queue:
             spec, depth, attach = self.queue.popleft()
-            attach(spec.trace(self, depth=depth))
-        return traced
+            traced: TracedNode = spec.trace(self, depth=depth)
+            attach(traced)
+        return traced_root

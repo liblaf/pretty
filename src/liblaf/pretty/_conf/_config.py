@@ -18,7 +18,6 @@ class PrettyOptions(types.SimpleNamespace):
     max_string: int
     max_long: int
     max_other: int
-    fill_value: Text
     indent: Text
     hide_defaults: bool
 
