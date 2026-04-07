@@ -5,7 +5,7 @@ import attrs
 from rich.text import Text
 
 from liblaf import conf
-from liblaf.pretty._const import ELLIPSIS, INDENT
+from liblaf.pretty._const import INDENT
 from liblaf.pretty._utils import as_text
 
 
@@ -37,7 +37,6 @@ class PrettyConfig(conf.BaseConfig):
     max_string: conf.Field[int] = conf.field_int(default=30)
     max_long: conf.Field[int] = conf.field_int(default=40)
     max_other: conf.Field[int] = conf.field_int(default=30)
-    fill_value: conf.Field[Text] = field_text(default=ELLIPSIS)
     indent: conf.Field[Text] = field_text(default=INDENT)
     hide_defaults: conf.Field[bool] = conf.field_bool(default=True)
 
