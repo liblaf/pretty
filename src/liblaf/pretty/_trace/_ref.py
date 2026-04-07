@@ -1,27 +1,13 @@
-from typing import override
+from typing import Self
 
 import attrs
-from rich.text import Text
-
-from liblaf.pretty._lower import LoweredLeaf
-
-from ._context import LowerContext
-from ._id import TraceId
-from ._traced import Traced
 
 
-@attrs.define
-class TracedRef(Traced):
-    ref: TraceId
+@attrs.frozen
+class Ref:
+    cls: type
+    id_: int
 
-    @override
-    def lower(self, ctx: LowerContext) -> LoweredLeaf:
-        typename: str = ctx.get_ref_typename(self.ref.cls)
-        return LoweredLeaf(
-            Text.assemble(
-                ("<", "repr.tag_start"),
-                (typename, "repr.tag_name"),
-                (f" @ {self.ref.id_:x}", "repr.tag_contents"),
-                (">", "repr.tag_end"),
-            )
-        )
+    @classmethod
+    def from_obj(cls, obj: object) -> Self:
+        return cls(cls=type(obj), id_=id(obj))

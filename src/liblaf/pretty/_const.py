@@ -1,6 +1,6 @@
 from rich.text import Text
 
-COLON: Text = Text(":", "repr.colon")
+COLON: Text = Text.assemble((":", "repr.colon"), " ")
 COMMA: Text = Text(",", "repr.comma")
 ELLIPSIS: Text = Text("...", "repr.ellipsis")
 EMPTY: Text = Text()

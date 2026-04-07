@@ -4,7 +4,7 @@ import attrs
 from rich.text import Text
 
 from liblaf.pretty._const import ELLIPSIS
-from liblaf.pretty._trace import TracedLeaf, TracedRef, TraceId
+from liblaf.pretty._trace import Ref, TracedLeaf, TracedRef
 
 from ._context import TraceContext
 from ._object import SpecObject
@@ -16,7 +16,7 @@ class SpecLeaf(SpecObject[TracedLeaf | TracedRef]):
 
     @classmethod
     def ellipsis(cls) -> Self:
-        return cls(ELLIPSIS, referencable=False, ref=TraceId.from_obj(...))
+        return cls(ELLIPSIS, referencable=False, ref=Ref.from_obj(...))
 
     @override
     def trace(self, ctx: TraceContext, depth: int) -> TracedLeaf | TracedRef:

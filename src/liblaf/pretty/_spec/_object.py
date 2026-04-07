@@ -1,6 +1,6 @@
 import attrs
 
-from liblaf.pretty._trace import TracedObject, TracedRef, TraceId
+from liblaf.pretty._trace import Ref, TracedObject, TracedRef
 
 from ._context import TraceContext
 from ._spec import Spec
@@ -8,7 +8,7 @@ from ._spec import Spec
 
 @attrs.define
 class SpecObject[T: TracedObject | TracedRef](Spec[T]):
-    ref: TraceId = attrs.field(kw_only=True)
+    ref: Ref = attrs.field(kw_only=True)
     referencable: bool = attrs.field(default=True, kw_only=True)
 
     def visited(self, ctx: TraceContext) -> TracedRef | None:

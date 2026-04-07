@@ -4,7 +4,7 @@ from typing import Any
 from rich.text import Text
 
 from liblaf.pretty._spec import SpecContainer, SpecItem, SpecItemValue, SpecObject
-from liblaf.pretty._trace import TraceId
+from liblaf.pretty._trace import Ref
 
 from ._context import DescribeContext
 from ._utils import add_separators, truncate
@@ -20,6 +20,6 @@ def _describe_list(obj: list[Any], ctx: DescribeContext) -> SpecContainer:
         yield from items
 
     spec = SpecContainer(
-        begin=Text("["), items=lazy_items(), end=Text("]"), ref=TraceId.from_obj(obj)
+        begin=Text("["), items=lazy_items(), end=Text("]"), ref=Ref.from_obj(obj)
     )
     return spec
