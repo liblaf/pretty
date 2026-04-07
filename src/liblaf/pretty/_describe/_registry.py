@@ -105,7 +105,7 @@ class DescribeRegistry:
 
     def resolve_lazy(self) -> None:
         # register prelude handlers
-        from liblaf.pretty._prelude import _container, _scalar  # noqa: F401
+        from liblaf.pretty._prelude import _container, _fieldz, _scalar  # noqa: F401
 
         for lazy_type, handler in list(self._lazy_handlers.items()):
             module_name, type_name = lazy_type

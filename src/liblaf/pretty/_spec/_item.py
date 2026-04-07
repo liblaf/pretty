@@ -73,10 +73,10 @@ class SpecValueItem(Spec):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @classmethod
-    def ellipsis(cls) -> Self:
+    def ellipsis(cls, prefix: Text = EMPTY, suffix: Text = EMPTY) -> Self:
         from ._node import SpecLeaf
 
-        return cls(SpecLeaf.ellipsis())
+        return cls(SpecLeaf.ellipsis(), prefix=prefix, suffix=suffix)
 
     @override
     def trace(self, ctx: TraceContext, depth: int) -> TracedValueItem:

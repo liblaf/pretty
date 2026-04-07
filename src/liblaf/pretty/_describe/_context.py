@@ -14,7 +14,7 @@ from liblaf.pretty._spec import (
     SpecValueItem,
     TraceContext,
 )
-from liblaf.pretty._trace import TRUNCATED
+from liblaf.pretty._trace import TRUNCATED, Ref
 from liblaf.pretty._utils import as_text
 
 from ._registry import DescribeRegistry, describe
@@ -60,6 +60,12 @@ class DescribeContext:
             return SpecValueItem.ellipsis()
         spec: SpecNode = self.describe(obj)
         return SpecValueItem(spec)
+
+    def ellipsis(self) -> SpecValueItem:
+        return SpecValueItem.ellipsis()
+
+    def ref(self, obj: Any) -> Ref:
+        return Ref.from_obj(obj)
 
     def truncate_dict[T](self, items: Iterable[T]) -> Generator[T]:
         for i, item in enumerate(items):
