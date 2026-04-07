@@ -1,70 +1,77 @@
 # Pretty
 
-`liblaf.pretty` is a small pretty-printing library built around three stages:
+`liblaf.pretty` formats Python objects into Rich renderables with width-aware
+layout, repr-style truncation, and stable shared-reference tracking.
 
-1. `describe`: user code implements `__pretty__(options) -> Spec`
-2. `trace`: the library resolves shared references with a stable breadth-first walk
-3. `lower`: the library turns traced nodes into a Rich renderable with width-aware layout
+## Quick Start
 
-## Public API
-
-```python
-from liblaf.pretty import (
-    PrettyOptions,
-    Spec,
-    SpecContainer,
-    SpecField,
-    SpecKeyValue,
-    SpecLeaf,
-    SpecValue,
-    pdoc,
-    pformat,
-    pprint,
-)
-```
-
-Top-level formatters accept a `PrettyOptions` object:
+Use `pformat()` when you want a renderable object that can be printed through
+Rich or captured as deterministic plain text:
 
 ```python
-from rich.text import Text
+from rich.console import Console
 
-from liblaf.pretty import PrettyOptions, pformat
+from liblaf.pretty import pformat
 
-text = pformat(
-    {"a": [1, 2, 3]},
-    options=PrettyOptions(max_width=13, indent=Text("│   ", "repr.indent")),
-)
+rendered = pformat({"alpha": [1, 2, 3]})
+console = Console(width=12, color_system=None, soft_wrap=True)
+
+print(rendered.to_plain(console))
 ```
 
-Custom objects participate by returning immutable specs:
+```text
+{
+|   'alpha': [
+|   |   1,
+|   |   2, 3
+|   ]
+}
+```
+
+Use `pprint()` or `pp()` when you want to send the formatted object directly to
+the active Rich console:
 
 ```python
-import attrs
-from rich.text import Text
+from liblaf.pretty import pprint
 
-from liblaf.pretty import PrettyOptions, SpecContainer, SpecField, SpecLeaf
-
-
-@attrs.frozen(slots=True, kw_only=True)
-class GreetingSpec(SpecContainer):
-    child: SpecLeaf
-
-    def iter_children(self):
-        yield SpecField(name="message", value=self.child)
-
-
-class Greeting:
-    def __pretty__(self, _options: PrettyOptions):
-        return GreetingSpec(
-            cls=type(self),
-            id_=id(self),
-            referable=True,
-            begin=Text.assemble(("Greeting", "repr.tag_name"), ("(", "repr.tag_start")),
-            end=Text(")", "repr.tag_end"),
-            child=SpecLeaf(
-                cls=str,
-                referable=False,
-                text=Text("'hello'", "repr.str"),
-            ),
-        )
+pprint({"alpha": [1, 2, 3]}, max_list=3)
 ```
+
+## What It Handles
+
+- Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
+- Repr-style truncation for deep, long, or large values
+- `attrs` and `fieldz` objects, including `repr=False` fields and hidden defaults
+- Objects with `__rich_repr__`
+- Shared and cyclic references
+- Advanced `__pretty__(ctx, depth)` hooks
+
+## Formatting Knobs
+
+The top-level formatters accept keyword arguments, not a `PrettyOptions`
+instance:
+
+- `max_level`, `max_list`, `max_array`, `max_dict`
+- `max_string`, `max_long`, `max_other`
+- `indent`
+- `hide_defaults`
+
+Explicit keyword arguments override the environment-backed defaults loaded from
+`PRETTY_*` variables.
+
+Width is chosen when you render the result through a Rich `Console`, not when
+you call `pformat()`.
+
+## Public Surface
+
+The top-level package exports:
+
+```python
+from liblaf.pretty import DescribeContext, describe, pformat, pp, pprint
+```
+
+`DescribeContext` and the shared `describe` registry are advanced extension
+points. Most callers only need `pformat()` or `pprint()`.
+
+For a longer guide, see [`docs/README.md`](docs/README.md). For signatures and
+docstrings, see [`docs/reference/README.md`](docs/reference/README.md).

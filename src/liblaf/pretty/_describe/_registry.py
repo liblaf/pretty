@@ -3,114 +3,123 @@ from __future__ import annotations
 import functools
 import logging
 import sys
+import types
 from collections.abc import Callable
-from typing import Any, Protocol, overload
+from typing import TYPE_CHECKING, Any, NamedTuple, Protocol, cast, overload
 
 import attrs
 
-from liblaf.pretty._options import PrettyOptions
-from liblaf.pretty._spec import Spec
+from liblaf.pretty._spec import SpecNode
+from liblaf.pretty._trace import TRUNCATED
 
-logger = logging.getLogger(__name__)
+from ._lazy import LazySpec
+from ._repr import describe_repr
+
+if TYPE_CHECKING:
+    from _typeshed import IdentityFunction
+
+    from ._context import DescribeContext
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
-class DescribeTypeHandler[T](Protocol):
-    def __call__(self, obj: T, options: PrettyOptions, /) -> Spec | None: ...
-
-
-class DescribeFunc(Protocol):
-    def __call__(self, obj: object, options: PrettyOptions, /) -> Spec | None: ...
-
-
-def _default_dispatcher() -> functools._SingleDispatchCallable[Spec | None]:
+def _default_type_dispatcher() -> functools._SingleDispatchCallable[SpecNode | None]:
     @functools.singledispatch
-    def dispatcher(_obj: object, _options: PrettyOptions) -> Spec | None:
+    def dispatcher(_obj: object, _ctx: DescribeContext, _depth: int) -> SpecNode | None:
         return None
 
     return dispatcher
 
 
+class Handler[T](Protocol):
+    def __call__(self, obj: T, ctx: DescribeContext, depth: int) -> SpecNode | None: ...
+
+
+class LazyType(NamedTuple):
+    module: str
+    name: str
+
+
 @attrs.define
 class DescribeRegistry:
-    dispatcher: functools._SingleDispatchCallable[Spec | None] = attrs.field(
-        factory=_default_dispatcher
+    _type_dispatcher: functools._SingleDispatchCallable[SpecNode | None] = attrs.field(
+        factory=_default_type_dispatcher, init=False
     )
-    handlers: list[DescribeFunc] = attrs.field(factory=list)
-    handlers_lazy: dict[tuple[str, str], DescribeTypeHandler[Any]] = attrs.field(
-        factory=dict
-    )
+    _handlers: list[Handler] = attrs.field(factory=list, init=False)
+    _lazy_handlers: dict[LazyType, Handler] = attrs.field(factory=dict, init=False)
 
-    def __call__(self, obj: object, options: PrettyOptions) -> Spec | None:
-        self._resolve_lazy()
-        result: Spec | None = self.dispatcher(obj, options)
-        if result is not None:
-            return result
-        for handler in self.handlers:
-            result = handler(obj, options)
-            if result is not None:
-                return result
-        return None
+    def __call__(self, obj: object, ctx: DescribeContext) -> SpecNode:
+        return self.describe_lazy(obj, ctx)
 
-    @overload
-    def register_type[F: DescribeTypeHandler[Any]](
-        self, cls: type, handler: F
-    ) -> F: ...
+    def describe_eager(self, obj: object, ctx: DescribeContext, depth: int) -> SpecNode:
+        if obj is TRUNCATED:
+            return cast("SpecNode", TRUNCATED)
+        self.resolve_lazy()
+        if (
+            hasattr(obj, "__pretty__")
+            and (spec := obj.__pretty__(ctx, depth)) is not None  # ty:ignore[call-non-callable]
+        ):
+            return spec
+        if (spec := self._type_dispatcher(obj, ctx, depth)) is not None:
+            return spec
+        for handler in self._handlers:
+            if (spec := handler(obj, ctx, depth)) is not None:
+                return spec
+        return describe_repr(obj, ctx, depth)
 
-    @overload
-    def register_type[F: DescribeTypeHandler[Any]](
-        self, cls: type, handler: None = None
-    ) -> Callable[[F], F]: ...
+    def describe_lazy(self, obj: object, ctx: DescribeContext) -> SpecNode:
+        if obj is TRUNCATED:
+            return cast("SpecNode", TRUNCATED)
+        self.resolve_lazy()
+        return LazySpec(ctx, functools.partial(self.describe_eager, obj))
 
-    def register_type(
-        self, cls: type, handler: DescribeTypeHandler[Any] | None = None
-    ) -> Callable[..., Any]:
-        return self.dispatcher.register(cls, handler)
-
-    @overload
-    def register_lazy[F: DescribeTypeHandler[Any]](
-        self, module: str, typename: str, handler: F
-    ) -> F: ...
+    def register_func[F: Handler](self, func: F) -> F:
+        self._handlers.append(func)
+        return func
 
     @overload
-    def register_lazy[F: DescribeTypeHandler[Any]](
-        self, module: str, typename: str, handler: None = None
-    ) -> Callable[[F], F]: ...
-
+    def register_lazy[F: Handler](self, module: str, name: str, func: F) -> F: ...
+    @overload
     def register_lazy(
-        self,
-        module: str,
-        typename: str,
-        handler: DescribeTypeHandler[Any] | None = None,
+        self, module: str, name: str, func: None = None
+    ) -> IdentityFunction: ...
+    def register_lazy[F: Handler](
+        self, module: str, name: str, func: F | None = None
     ) -> Callable[..., Any]:
-        if handler is None:
-            return functools.partial(self.register_lazy, module, typename)
-        self.handlers_lazy[(module, typename)] = handler
-        return handler
+        if func is None:
+            return functools.partial(self.register_lazy, module, name)
+        lazy_type = LazyType(module, name)
+        self._lazy_handlers[lazy_type] = func
+        return func
 
-    def register_func[F: DescribeFunc](self, handler: F) -> F:
-        self.handlers.append(handler)
-        return handler
+    @overload
+    def register_type[F: Handler](self, cls: type, func: F) -> F: ...
+    @overload
+    def register_type[F: Handler](
+        self, cls: type, func: None = None
+    ) -> IdentityFunction: ...
+    def register_type[F: Handler](
+        self, cls: type, func: F | None = None
+    ) -> Callable[..., Any]:
+        return self._type_dispatcher.register(cls, func)
 
-    def _resolve_lazy(self) -> None:
-        for (module_name, typename), handler in list(self.handlers_lazy.items()):
-            module = sys.modules.get(module_name)
-            if module is None:
+    def resolve_lazy(self) -> None:
+        # register prelude handlers
+        from liblaf.pretty._prelude import _container, _fieldz, _scalar  # noqa: F401
+
+        for lazy_type, handler in list(self._lazy_handlers.items()):
+            module_name, type_name = lazy_type
+            if module_name not in sys.modules:
                 continue
+            module: types.ModuleType = sys.modules[module_name]
             try:
-                cls: type = getattr(module, typename)
+                cls: type = getattr(module, type_name)
             except AttributeError:
-                logger.warning(
-                    "failed to resolve lazy pretty handler for %s.%s",
-                    module_name,
-                    typename,
-                )
-                del self.handlers_lazy[(module_name, typename)]
+                logger.exception("")
+                del self._lazy_handlers[lazy_type]
             else:
                 self.register_type(cls, handler)
-                del self.handlers_lazy[(module_name, typename)]
+                del self._lazy_handlers[lazy_type]
 
 
-describe_registry = DescribeRegistry()
-register_func = describe_registry.register_func
-register_lazy = describe_registry.register_lazy
-register_type = describe_registry.register_type
+describe: DescribeRegistry = DescribeRegistry()

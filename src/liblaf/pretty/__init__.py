@@ -1,31 +1,7 @@
-from ._describe._registry import register_func, register_lazy, register_type
-from ._main import pdoc, pformat, pprint
-from ._options import PrettyOptions
-from ._spec import (
-    PrettyPrintable,
-    Spec,
-    SpecContainer,
-    SpecField,
-    SpecItem,
-    SpecKeyValue,
-    SpecLeaf,
-    SpecValue,
-)
+"""Format Python objects into Rich renderables with width-aware layout."""
 
-__all__ = [
-    "PrettyOptions",
-    "PrettyPrintable",
-    "Spec",
-    "SpecContainer",
-    "SpecField",
-    "SpecItem",
-    "SpecKeyValue",
-    "SpecLeaf",
-    "SpecValue",
-    "pdoc",
-    "pformat",
-    "pprint",
-    "register_func",
-    "register_lazy",
-    "register_type",
-]
+from lazy_loader import attach_stub
+
+__getattr__, __dir__, __all__ = attach_stub(__name__, __file__)
+
+del attach_stub

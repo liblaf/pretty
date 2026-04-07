@@ -3,92 +3,36 @@ from __future__ import annotations
 import abc
 import functools
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self, override
 
 import attrs
 from rich.console import RenderResult
 from rich.text import Text
 
+from liblaf.pretty._const import EMPTY
+
+from ._base import Lowered
 from ._writer import Writer
 
 if TYPE_CHECKING:
-    from ._model import Lowered
+    from ._node import LoweredNode
 
 
-@attrs.define
-class Item(abc.ABC):
-    prefix: Text = attrs.field(factory=Text, kw_only=True)
-    suffix: Text = attrs.field(factory=Text, kw_only=True)
+@attrs.frozen
+class LoweredItem(Lowered):
+    prefix: Text = attrs.field(default=EMPTY, kw_only=True)
+    suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
-    @functools.cached_property
+    @property
     @abc.abstractmethod
-    def width_inline(self) -> int | float:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def render(self, writer: Writer) -> RenderResult:
-        raise NotImplementedError
+    def width_inline(self) -> int | float: ...
 
 
-@attrs.define(kw_only=True)
-class ItemValue(Item):
-    value: Lowered
-
-    @functools.cached_property
-    def width_inline(self) -> int | float:
-        if self.value.annotation:
-            return math.inf
-        return self.prefix.cell_len + self.value.width_flat + self.suffix.cell_len
-
-    def render(self, writer: Writer) -> RenderResult:
-        if self._fits_inline(writer):
-            yield from self._render_inline(writer)
-        else:
-            yield from writer.ensure_newline()
-            if self._fits_flat(writer):
-                yield from self._render_flat(writer)
-            else:
-                yield from self._render_break(writer)
-
-    def _fits_inline(self, writer: Writer) -> bool:
-        return (
-            writer.column > 0
-            and not self.value.annotation
-            and self.prefix.cell_len + self.value.width_flat + self.suffix.cell_len
-            <= writer.remaining_width
-        )
-
-    def _render_inline(self, writer: Writer) -> RenderResult:
-        yield from writer.write(self.prefix)
-        yield from self.value.render_flat(writer)
-        yield from writer.write(self.suffix)
-
-    def _fits_flat(self, writer: Writer) -> bool:
-        return (
-            self.value.width_flat
-            + self.suffix.cell_len
-            + self.value.annotation.cell_len
-            <= writer.remaining_width
-        )
-
-    def _render_flat(self, writer: Writer) -> RenderResult:
-        yield from self.value.render_flat(writer)
-        yield from writer.write(self.suffix)
-        if self.value.annotation:
-            yield from writer.write(self.value.annotation)
-            yield from writer.ensure_newline()
-
-    def _render_break(self, writer: Writer) -> RenderResult:
-        yield from self.value.render_break(writer)
-        yield from writer.write(self.suffix)
-        yield from writer.ensure_newline()
-
-
-@attrs.define(kw_only=True)
-class ItemKeyValue(Item):
-    key: Lowered
-    value: Lowered
+@attrs.frozen
+class LoweredEntryItem(LoweredItem):
+    key: LoweredNode
     sep: Text
+    value: LoweredNode
 
     @functools.cached_property
     def width_inline(self) -> int | float:
@@ -102,6 +46,7 @@ class ItemKeyValue(Item):
             + self.suffix.cell_len
         )
 
+    @override
     def render(self, writer: Writer) -> RenderResult:
         if self._fits_inline(writer):
             yield from self._render_inline(writer)
@@ -148,9 +93,9 @@ class ItemKeyValue(Item):
         )
 
     def _render_flat_flat(self, writer: Writer) -> RenderResult:
-        yield from self.key.render_flat(writer)
+        yield from self.key.render_flat(writer, annotation=False)
         yield from writer.write(self.sep)
-        yield from self.value.render_flat(writer)
+        yield from self.value.render_flat(writer, annotation=False)
         yield from writer.write(self.suffix)
         if self.value.annotation:
             yield from writer.write(self.value.annotation)
@@ -167,9 +112,9 @@ class ItemKeyValue(Item):
         )
 
     def _render_flat_break(self, writer: Writer) -> RenderResult:
-        yield from self.key.render_flat(writer)
+        yield from self.key.render_flat(writer, annotation=False)
         yield from writer.write(self.sep)
-        yield from self.value.render_break(writer)
+        yield from self.value.render_break(writer, annotation=True)
         yield from writer.write(self.suffix)
         yield from writer.ensure_newline()
 
@@ -185,23 +130,79 @@ class ItemKeyValue(Item):
         )
 
     def _render_break_flat(self, writer: Writer) -> RenderResult:
-        key_annotation_inline: bool = not self.key.is_container
-        yield from self.key.render_break(writer, annotation=not key_annotation_inline)
+        yield from self.key.render_break(writer, annotation=True)
         yield from writer.write(self.sep)
-        yield from self.value.render_flat(writer)
+        yield from self.value.render_flat(writer, annotation=False)
         yield from writer.write(self.suffix)
-        if key_annotation_inline and self.key.annotation:
-            yield from writer.write(self.key.annotation)
         if self.value.annotation:
             yield from writer.write(self.value.annotation)
         yield from writer.ensure_newline()
 
     def _render_break_break(self, writer: Writer) -> RenderResult:
-        key_annotation_inline: bool = not self.key.is_container
-        yield from self.key.render_break(writer, annotation=not key_annotation_inline)
+        yield from self.key.render_break(writer, annotation=True)
         yield from writer.write(self.sep)
-        yield from self.value.render_break(writer)
+        yield from self.value.render_break(writer, annotation=True)
         yield from writer.write(self.suffix)
-        if key_annotation_inline and self.key.annotation:
+        if self.key.annotation:
             yield from writer.write(self.key.annotation)
+        yield from writer.ensure_newline()
+
+
+@attrs.frozen
+class LoweredValueItem(LoweredItem):
+    value: LoweredNode
+
+    @classmethod
+    def ellipsis(cls, prefix: Text = EMPTY, suffix: Text = EMPTY) -> Self:
+        from ._node import LoweredLeaf
+
+        return cls(LoweredLeaf.ellipsis(), prefix=prefix, suffix=suffix)
+
+    @functools.cached_property
+    def width_inline(self) -> int | float:
+        if self.value.annotation:
+            return math.inf
+        return self.prefix.cell_len + self.value.width_flat + self.suffix.cell_len
+
+    @override
+    def render(self, writer: Writer) -> RenderResult:
+        if self._fits_inline(writer):
+            yield from self._render_inline(writer)
+        else:
+            yield from writer.ensure_newline()
+            if self._fits_flat(writer):
+                yield from self._render_flat(writer)
+            else:
+                yield from self._render_break(writer)
+
+    def _fits_inline(self, writer: Writer) -> bool:
+        return (
+            writer.column > 0
+            and not self.value.annotation
+            and self.width_inline <= writer.remaining_width
+        )
+
+    def _render_inline(self, writer: Writer) -> RenderResult:
+        yield from writer.write(self.prefix)
+        yield from self.value.render_flat(writer, annotation=False)
+        yield from writer.write(self.suffix)
+
+    def _fits_flat(self, writer: Writer) -> bool:
+        return (
+            self.value.width_flat
+            + self.suffix.cell_len
+            + self.value.annotation.cell_len
+            <= writer.remaining_width
+        )
+
+    def _render_flat(self, writer: Writer) -> RenderResult:
+        yield from self.value.render_flat(writer, annotation=False)
+        yield from writer.write(self.suffix)
+        if self.value.annotation:
+            yield from writer.write(self.value.annotation)
+            yield from writer.ensure_newline()
+
+    def _render_break(self, writer: Writer) -> RenderResult:
+        yield from self.value.render_break(writer, annotation=True)
+        yield from writer.write(self.suffix)
         yield from writer.ensure_newline()
