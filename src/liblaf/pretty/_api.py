@@ -21,7 +21,9 @@ def pformat(obj: Any, **kwargs: Unpack[PrettyKwargs]) -> LoweredNode:
     return lowered
 
 
-def pprint(obj: Any, console: Console | None, **kwargs: Unpack[PrettyKwargs]) -> None:
+def pprint(
+    obj: Any, *, console: Console | None = None, **kwargs: Unpack[PrettyKwargs]
+) -> None:
     if console is None:
         console: Console = rich.get_console()
     lowered: LoweredNode = pformat(obj, **kwargs)

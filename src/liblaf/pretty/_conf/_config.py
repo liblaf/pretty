@@ -1,4 +1,3 @@
-import types
 from typing import ClassVar, TypedDict
 
 import attrs

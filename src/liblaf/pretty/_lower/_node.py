@@ -25,7 +25,7 @@ class LoweredNode(Lowered):
 
     @override
     def render(self, writer: Writer) -> RenderResult:
-        if self.width_flat <= writer.remaining_width:
+        if self.width_flat + self.annotation.cell_len <= writer.remaining_width:
             yield from self.render_flat(writer, annotation=True)
         else:
             yield from self.render_break(writer, annotation=True)

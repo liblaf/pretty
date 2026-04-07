@@ -16,3 +16,10 @@ class Lowered(abc.ABC):
 
     @abc.abstractmethod
     def render(self, writer: Writer) -> RenderResult: ...
+
+    def to_plain(self, console: Console | None = None) -> str:
+        if console is None:
+            console: Console = Console(color_system=None, soft_wrap=True)
+        with console.capture() as capture:
+            console.print(self)
+        return capture.get()
