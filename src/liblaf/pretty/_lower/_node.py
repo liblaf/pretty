@@ -139,8 +139,9 @@ class LoweredLeaf(LoweredNode):
 
     @override
     def render_break(self, writer: Writer, *, annotation: bool = True) -> RenderResult:
-        assert len(self.lines) > 1
-        if annotation and self.annotation:
+        if len(self.lines) == 1:
+            yield from self.render_flat(writer, annotation=annotation)
+        elif annotation and self.annotation:
             first_line: Text = self.lines[0].copy()
             first_line.rstrip()
             yield from writer.write(first_line)

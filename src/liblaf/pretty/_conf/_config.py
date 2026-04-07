@@ -1,5 +1,5 @@
 import types
-from typing import ClassVar
+from typing import ClassVar, TypedDict
 
 import attrs
 from rich.text import Text
@@ -9,8 +9,7 @@ from liblaf.pretty._const import INDENT
 from liblaf.pretty._utils import as_text
 
 
-@attrs.frozen
-class PrettyOptions(types.SimpleNamespace):
+class PrettyKwargs(TypedDict, total=False):
     max_level: int
     max_list: int
     max_array: int
@@ -18,7 +17,20 @@ class PrettyOptions(types.SimpleNamespace):
     max_string: int
     max_long: int
     max_other: int
-    indent: Text
+    indent: Text | str
+    hide_defaults: bool
+
+
+@attrs.frozen
+class PrettyOptions:
+    max_level: int
+    max_list: int
+    max_array: int
+    max_dict: int
+    max_string: int
+    max_long: int
+    max_other: int
+    indent: Text = attrs.field(converter=as_text)
     hide_defaults: bool
 
 

@@ -1,3 +1,3 @@
-from ._config import PrettyConfig, PrettyOptions, config
+from ._config import PrettyConfig, PrettyKwargs, PrettyOptions, config
 
-__all__ = ["PrettyConfig", "PrettyOptions", "config"]
+__all__ = ["PrettyConfig", "PrettyKwargs", "PrettyOptions", "config"]
