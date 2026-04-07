@@ -3,14 +3,14 @@ from __future__ import annotations
 import abc
 import functools
 import math
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Self, override
 
 import attrs
 from rich.console import RenderResult
 from rich.containers import Lines
 from rich.text import Text
 
-from liblaf.pretty._const import EMPTY
+from liblaf.pretty._const import ELLIPSIS, EMPTY
 
 from ._base import Lowered
 from ._writer import Writer
@@ -105,6 +105,10 @@ class LoweredContainer(LoweredNode):
 @attrs.frozen
 class LoweredLeaf(LoweredNode):
     value: Text
+
+    @classmethod
+    def ellipsis(cls) -> Self:
+        return cls(ELLIPSIS)
 
     @functools.cached_property
     def lines(self) -> Lines:

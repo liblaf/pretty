@@ -60,7 +60,7 @@ class SpecContainer(SpecNode):
         )
         if depth < ctx.options.max_level:
             for item in self.items:
-                item.trace(ctx, depth + 1)
+                traced.items.append(item.trace(ctx, depth + 1))
         else:
             traced.items = [TracedValueItem.ellipsis()]
         ctx.traced[self.ref.id_] = traced

@@ -2,15 +2,22 @@ from collections.abc import Generator, Iterable
 from typing import Any, cast
 
 import attrs
-from typing_extensions import Sentinel
+from rich.text import Text
 
 from liblaf.pretty._conf import PrettyOptions, config
-from liblaf.pretty._const import COMMA, SPACE
-from liblaf.pretty._spec import SpecItem, SpecNode, TraceContext
+from liblaf.pretty._const import COLON, COMMA, EQUAL, SPACE
+from liblaf.pretty._spec import (
+    SpecDictItem,
+    SpecItem,
+    SpecNamedItem,
+    SpecNode,
+    SpecValueItem,
+    TraceContext,
+)
+from liblaf.pretty._trace import TRUNCATED
+from liblaf.pretty._utils import as_text
 
 from ._registry import DescribeRegistry, describe
-
-TRUNCATED = Sentinel("TRUNCATED")
 
 
 @attrs.define
@@ -29,6 +36,30 @@ class DescribeContext:
 
     def describe(self, obj: Any) -> SpecNode:
         return self.registry.describe_lazy(obj, self)
+
+    def describe_dict_item(
+        self, key: Any, value: Any, *, sep: Text = COLON
+    ) -> SpecItem:
+        if key is TRUNCATED or value is TRUNCATED:
+            return SpecValueItem.ellipsis()
+        key_spec: SpecNode = self.describe(key)
+        value_spec: SpecNode = self.describe(value)
+        return SpecDictItem(key_spec, value_spec, sep=sep)
+
+    def describe_named_item(
+        self, name: str | Text, value: Any, *, sep: Text = EQUAL
+    ) -> SpecItem:
+        if value is TRUNCATED:
+            return SpecValueItem.ellipsis()
+        name: Text = as_text(name)
+        spec: SpecNode = self.describe(value)
+        return SpecNamedItem(name, spec, sep=sep)
+
+    def describe_value_item(self, obj: Any) -> SpecValueItem:
+        if obj is TRUNCATED:
+            return SpecValueItem.ellipsis()
+        spec: SpecNode = self.describe(obj)
+        return SpecValueItem(spec)
 
     def truncate_dict[T](self, items: Iterable[T]) -> Generator[T]:
         for i, item in enumerate(items):

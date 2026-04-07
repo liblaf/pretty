@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 import functools
 import math
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Self, override
 
 import attrs
 from rich.console import RenderResult
@@ -151,6 +151,12 @@ class LoweredEntryItem(LoweredItem):
 @attrs.frozen
 class LoweredValueItem(LoweredItem):
     value: LoweredNode
+
+    @classmethod
+    def ellipsis(cls, prefix: Text = EMPTY, suffix: Text = EMPTY) -> Self:
+        from ._node import LoweredLeaf
+
+        return cls(LoweredLeaf.ellipsis(), prefix=prefix, suffix=suffix)
 
     @functools.cached_property
     def width_inline(self) -> int | float:

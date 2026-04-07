@@ -6,10 +6,16 @@ import attrs
 from rich.text import Text
 
 from liblaf.pretty._const import COLON, EMPTY, EQUAL
-from liblaf.pretty._lower import LoweredEntryItem, LoweredLeaf, LoweredValueItem
+from liblaf.pretty._lower import (
+    LoweredEntryItem,
+    LoweredItem,
+    LoweredLeaf,
+    LoweredValueItem,
+)
 
 from ._base import Traced
 from ._context import LowerContext
+from ._sentinel import TRUNCATED
 
 if TYPE_CHECKING:
     from ._node import TracedNode
@@ -24,7 +30,9 @@ class TracedDictItem(Traced):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override
-    def lower(self, ctx: LowerContext) -> LoweredEntryItem:
+    def lower(self, ctx: LowerContext) -> LoweredItem:
+        if self.key is TRUNCATED or self.value is TRUNCATED:
+            return LoweredValueItem.ellipsis(prefix=self.prefix, suffix=self.suffix)
         return LoweredEntryItem(
             prefix=self.prefix,
             key=self.key.lower(ctx),
@@ -49,7 +57,9 @@ class TracedNamedItem(Traced):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override
-    def lower(self, ctx: LowerContext) -> LoweredEntryItem:
+    def lower(self, ctx: LowerContext) -> LoweredItem:
+        if self.value is TRUNCATED:
+            return LoweredValueItem.ellipsis(prefix=self.prefix, suffix=self.suffix)
         return LoweredEntryItem(
             prefix=self.prefix,
             key=LoweredLeaf(self.name),
@@ -69,13 +79,15 @@ class TracedValueItem(Traced):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @classmethod
-    def ellipsis(cls) -> TracedValueItem:
+    def ellipsis(cls, prefix: Text = EMPTY, suffix: Text = EMPTY) -> TracedValueItem:
         from ._node import TracedLeaf
 
-        return cls(prefix=EMPTY, value=TracedLeaf.ellipsis(), suffix=Text("..."))
+        return cls(prefix=prefix, value=TracedLeaf.ellipsis(), suffix=suffix)
 
     @override
     def lower(self, ctx: LowerContext) -> LoweredValueItem:
+        if self.value is TRUNCATED:
+            return LoweredValueItem.ellipsis(prefix=self.prefix, suffix=self.suffix)
         return LoweredValueItem(
             prefix=self.prefix, value=self.value.lower(ctx), suffix=self.suffix
         )

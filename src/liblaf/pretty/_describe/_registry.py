@@ -5,13 +5,15 @@ import logging
 import sys
 import types
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, NamedTuple, Protocol, overload
+from typing import TYPE_CHECKING, Any, NamedTuple, Protocol, cast, overload
 
 import attrs
 
-from liblaf.pretty._spec import SpecNode
+from liblaf.pretty._spec import SpecLeaf, SpecNode
+from liblaf.pretty._trace import TRUNCATED
 
 from ._lazy import LazySpec
+from ._repr import describe_repr
 
 if TYPE_CHECKING:
     from _typeshed import IdentityFunction
@@ -50,6 +52,8 @@ class DescribeRegistry:
         return self.describe_lazy(obj, ctx)
 
     def describe_eager(self, obj: object, ctx: DescribeContext, depth: int) -> SpecNode:
+        if obj is TRUNCATED:
+            return cast("SpecNode", TRUNCATED)
         self.resolve_lazy()
         if (
             hasattr(obj, "__pretty__")
@@ -61,9 +65,11 @@ class DescribeRegistry:
         for handler in self._handlers:
             if (spec := handler(obj, ctx, depth)) is not None:
                 return spec
-        raise NotImplementedError
+        return describe_repr(obj, ctx, depth)
 
     def describe_lazy(self, obj: object, ctx: DescribeContext) -> SpecNode:
+        if obj is TRUNCATED:
+            return cast("SpecNode", TRUNCATED)
         self.resolve_lazy()
         return LazySpec(ctx, functools.partial(self.describe_eager, obj))
 
@@ -99,7 +105,7 @@ class DescribeRegistry:
 
     def resolve_lazy(self) -> None:
         # register prelude handlers
-        from . import _builtin_container  # noqa: F401
+        from liblaf.pretty._prelude import _container, _scalar  # noqa: F401
 
         for lazy_type, handler in list(self._lazy_handlers.items()):
             module_name, type_name = lazy_type
