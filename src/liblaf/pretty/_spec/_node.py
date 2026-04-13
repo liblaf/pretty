@@ -9,12 +9,12 @@ from rich.text import Text
 
 from liblaf.pretty._const import ELLIPSIS
 from liblaf.pretty._trace import (
-    Ref,
+    ObjectIdentifier,
     TracedContainer,
     TracedLeaf,
     TracedNode,
+    TracedPositionalItem,
     TracedRef,
-    TracedValueItem,
 )
 
 from ._base import Spec
@@ -36,7 +36,7 @@ class SpecContainer(SpecNode):
     items: Iterable[SpecItem]
     end: Text
     indent: Text
-    ref: Ref
+    ref: ObjectIdentifier
     referencable: bool = attrs.field(default=True, kw_only=True)
 
     def _default_empty(self) -> Text:
@@ -52,36 +52,41 @@ class SpecContainer(SpecNode):
             return traced
         traced: TracedContainer = TracedContainer(
             begin=self.begin,
-            items=[],
+            children=[],
             end=self.end,
             indent=self.indent,
+            has_ref=False,
             empty=self.empty,
-            ref=self.ref,
+            identifier=self.ref,
         )
+        ctx.traced[self.ref.id_] = traced
         if depth < ctx.options.max_level:
             for item in self.items:
-                traced.items.append(item.trace(ctx, depth + 1))
+                traced.children.append(item.trace(ctx, depth + 1))
         else:
-            traced.items = [TracedValueItem.ellipsis()]
-        ctx.traced[self.ref.id_] = traced
+            traced.children = [TracedPositionalItem.ellipsis()]
         return traced
 
 
 @attrs.define
 class SpecLeaf(SpecNode):
     value: Text
-    ref: Ref
+    ref: ObjectIdentifier
     referencable: bool = attrs.field(default=False, kw_only=True)
 
     @classmethod
     def ellipsis(cls) -> Self:
-        return cls(ELLIPSIS, ref=Ref.from_obj(...), referencable=False)
+        return cls(ELLIPSIS, ref=ObjectIdentifier.missing(), referencable=False)
 
     @override
     def trace(self, ctx: TraceContext, depth: int) -> TracedLeaf | TracedRef:
         if (traced := _visit(ctx, self)) is not None:
             return traced
-        traced = TracedLeaf(self.value, ref=self.ref)
+        traced = TracedLeaf(
+            self.value,
+            has_ref=False,
+            identifier=self.ref,
+        )
         ctx.traced[self.ref.id_] = traced
         return traced
 
@@ -91,5 +96,5 @@ def _visit(ctx: TraceContext, spec: SpecContainer | SpecLeaf) -> TracedRef | Non
         ctx.types_.add(spec.ref.cls)
         if (traced := ctx.traced.get(spec.ref.id_)) is not None:
             traced.has_ref = True
-            return TracedRef(spec.ref)
+            return TracedRef(identifier=spec.ref)
     return None

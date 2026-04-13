@@ -7,7 +7,7 @@ from rich.highlighter import ReprHighlighter
 from rich.text import Text
 
 from liblaf.pretty._spec import SpecLeaf, SpecNode
-from liblaf.pretty._trace import Ref
+from liblaf.pretty._trace import ObjectIdentifier
 from liblaf.pretty._utils import has_ansi
 
 if TYPE_CHECKING:
@@ -38,4 +38,8 @@ def describe_repr(
         text: Text = Text.from_ansi(raw)
     else:
         text: Text = _HIGHLIGHTER(raw)
-    return SpecLeaf(text, ref=Ref.from_obj(obj), referencable=referencable)
+    return SpecLeaf(
+        text,
+        ref=ObjectIdentifier.from_obj(obj),
+        referencable=referencable,
+    )

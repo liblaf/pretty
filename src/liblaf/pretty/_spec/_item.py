@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self, cast, override
+from typing import TYPE_CHECKING, Self, override
 
 import attrs
 from rich.text import Text
 
 from liblaf.pretty._const import COLON, EMPTY, EQUAL
 from liblaf.pretty._trace import (
-    TracedDictItem,
-    TracedNamedItem,
-    TracedNode,
-    TracedValueItem,
+    TRACED_MISSING,
+    TracedKeyValueItem,
+    TracedNameValueItem,
+    TracedPositionalItem,
 )
 
 from ._base import Spec
@@ -18,9 +18,6 @@ from ._context import TraceContext
 
 if TYPE_CHECKING:
     from ._node import SpecNode
-
-
-_MISSING: TracedNode = cast("TracedNode", None)
 
 
 @attrs.define
@@ -32,12 +29,12 @@ class SpecDictItem(Spec):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override
-    def trace(self, ctx: TraceContext, depth: int) -> TracedDictItem:
-        traced: TracedDictItem = TracedDictItem(
+    def trace(self, ctx: TraceContext, depth: int) -> TracedKeyValueItem:
+        traced: TracedKeyValueItem = TracedKeyValueItem(
             prefix=self.prefix,
-            key=_MISSING,
+            key=TRACED_MISSING,
             sep=self.sep,
-            value=_MISSING,
+            value=TRACED_MISSING,
             suffix=self.suffix,
         )
         ctx.enqueue(self.key, depth, traced.attach_key)
@@ -54,12 +51,12 @@ class SpecNamedItem(Spec):
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @override
-    def trace(self, ctx: TraceContext, depth: int) -> TracedNamedItem:
-        traced: TracedNamedItem = TracedNamedItem(
+    def trace(self, ctx: TraceContext, depth: int) -> TracedNameValueItem:
+        traced: TracedNameValueItem = TracedNameValueItem(
             prefix=self.prefix,
             name=self.name,
             sep=self.sep,
-            value=_MISSING,
+            value=TRACED_MISSING,
             suffix=self.suffix,
         )
         ctx.enqueue(self.value, depth, traced.attach_value)
@@ -79,9 +76,11 @@ class SpecValueItem(Spec):
         return cls(SpecLeaf.ellipsis(), prefix=prefix, suffix=suffix)
 
     @override
-    def trace(self, ctx: TraceContext, depth: int) -> TracedValueItem:
-        traced: TracedValueItem = TracedValueItem(
-            prefix=self.prefix, value=_MISSING, suffix=self.suffix
+    def trace(self, ctx: TraceContext, depth: int) -> TracedPositionalItem:
+        traced: TracedPositionalItem = TracedPositionalItem(
+            prefix=self.prefix,
+            value=TRACED_MISSING,
+            suffix=self.suffix,
         )
         ctx.enqueue(self.value, depth, traced.attach)
         return traced

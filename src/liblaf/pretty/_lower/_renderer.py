@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 import contextlib
 import functools
-import types
 from collections.abc import Generator, Iterable
 
 import attrs
@@ -15,11 +12,13 @@ type Renderable = RenderableType | Segment | None
 
 
 class Segments(rich.segment.Segments):
+    segments: list[Segment]
+
     def __init__(
         self, segments: Iterable[Segment] | None = None, *, new_lines: bool = False
     ) -> None:
         if segments is None:
-            segments = []
+            segments: list[Segment] = []
         super().__init__(segments, new_lines=new_lines)
 
     @functools.cached_property
@@ -27,9 +26,15 @@ class Segments(rich.segment.Segments):
         return sum(segment.cell_length for segment in self.segments)
 
 
+def _default_console() -> Console:
+    return Console(soft_wrap=True, markup=False, emoji=False, highlight=False)
+
+
 @attrs.define
-class Writer:
-    console: Console = attrs.field(factory=Console)
+class Renderer:
+    console: Console = attrs.field(factory=_default_console)
+    column: int = attrs.field(default=0, kw_only=True)
+    prefix: Segments = attrs.field(factory=Segments, kw_only=True)
 
     def _default_options(self) -> ConsoleOptions:
         return self.console.options.update(
@@ -39,9 +44,6 @@ class Writer:
     _options: ConsoleOptions = attrs.field(
         default=attrs.Factory(_default_options, takes_self=True)
     )
-
-    column: int = attrs.field(default=0, init=False)
-    prefix: Segments = attrs.field(factory=Segments, init=False)
 
     @property
     def options(self) -> ConsoleOptions:
@@ -58,16 +60,7 @@ class Writer:
             yield Segment.line()
             self.column = 0
 
-    @contextlib.contextmanager
-    def indent(self, indent: Renderable) -> Generator[None]:
-        previous_prefix: Segments = self.prefix
-        self.prefix = self._render(self.prefix, indent)
-        try:
-            yield
-        finally:
-            self.prefix = previous_prefix
-
-    def write(self, *renderables: Renderable) -> RenderResult:
+    def render(self, *renderables: Renderable) -> RenderResult:
         segments: Segments = self._render(*renderables)
         for line_iterable, newline in Segment.split_lines_terminator(segments.segments):
             if self.column == 0:
@@ -82,6 +75,15 @@ class Writer:
             else:
                 self.column += line.width
 
+    @contextlib.contextmanager
+    def indent(self, indent: Renderable) -> Generator[None]:
+        prefix_old: Segments = self.prefix
+        self.prefix = self._render(self.prefix, indent)
+        try:
+            yield
+        finally:
+            self.prefix = prefix_old
+
     def _render(self, *renderables: Renderable) -> Segments:
         segments: list[Segment] = []
         for renderable in renderables:
@@ -91,10 +93,6 @@ class Writer:
     @functools.singledispatchmethod
     def _render_single(self, renderable: RenderableType) -> Iterable[Segment]:
         return self.console.render(renderable, options=self._options)
-
-    @_render_single.register(types.NoneType)
-    def _render_single_none(self, _renderable: None) -> Iterable[Segment]:
-        return []
 
     @_render_single.register(str)
     def _render_single_str(self, renderable: str) -> Iterable[Segment]:

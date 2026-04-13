@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import attrs
 from rich.repr import RichReprResult
-from rich.text import Text
 
 from liblaf.pretty import DescribeContext
-from liblaf.pretty._spec._node import SpecContainer
+from liblaf.pretty._spec import SpecItem, SpecNode
 
 from ._helpers import render_plain
 
@@ -25,16 +26,46 @@ class RichThing:
 
 
 class Greeting:
-    def __pretty__(self, ctx: DescribeContext, depth: int) -> SpecContainer:
+    def __pretty__(self, ctx: DescribeContext, depth: int) -> SpecNode:
         del depth
-        return SpecContainer(
-            begin=Text("Greeting("),
-            items=ctx.add_separators([ctx.describe_named_item("message", "hello")]),
-            end=Text(")"),
-            indent=ctx.options.indent,
-            ref=ctx.ref(self),
+        return ctx.container(
+            begin="(",
+            end=")",
+            children=(ctx.name_value("message", "hello"),),
             referencable=False,
+            obj=self,
         )
+
+
+class Leafy:
+    def __pretty__(self, ctx: DescribeContext, depth: int) -> SpecNode:
+        del depth
+        return ctx.leaf("leaf", obj=self, referencable=False)
+
+
+class LazyChildren:
+    def __init__(self, events: list[str]) -> None:
+        self.events = events
+
+    def __pretty__(self, ctx: DescribeContext, depth: int) -> SpecNode:
+        del depth
+
+        def children() -> Iterator[SpecItem]:
+            self.events.append("iterated")
+            yield ctx.positional(1)
+            yield ctx.name_value("a", 2)
+            yield ctx.key_value("b", 3)
+
+        self.events.append("before-container")
+        container = ctx.container(
+            begin="(",
+            end=")",
+            children=children(),
+            referencable=False,
+            obj=self,
+        )
+        self.events.append("after-container")
+        return container
 
 
 def _repr_thing_a(_self: object) -> str:
@@ -73,8 +104,19 @@ def test_rich_repr_skips_default_triplets() -> None:
     assert render_plain(RichThing()) == "RichThing(name='x', keep=2, 3)"
 
 
-def test_custom_pretty_current_output() -> None:
-    assert render_plain(Greeting()) == "GreetingGreeting(message='hello')"
+def test_custom_pretty_container_helpers_render_clean_output() -> None:
+    assert render_plain(Greeting()) == "Greeting(message='hello')"
+
+
+def test_custom_pretty_leaf_helper_renders_literal() -> None:
+    assert render_plain(Leafy()) == "leaf"
+
+
+def test_custom_pretty_container_children_are_consumed_lazily() -> None:
+    events: list[str] = []
+
+    assert render_plain(LazyChildren(events)) == "LazyChildren(1, a=2, 'b': 3)"
+    assert events == ["before-container", "after-container", "iterated"]
 
 
 def test_shared_references_are_annotated_and_reused() -> None:

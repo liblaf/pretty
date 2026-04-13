@@ -1,3 +1,9 @@
-from typing_extensions import Sentinel
+import enum
+from typing import Any
 
-TRUNCATED = Sentinel("TRUNCATED")
+
+class _TruncatedType(enum.Enum):
+    TRUNCATED = enum.auto()
+
+
+TRUNCATED: Any = _TruncatedType.TRUNCATED

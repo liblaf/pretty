@@ -5,13 +5,15 @@ from rich.text import Text
 
 from liblaf.pretty._describe import DescribeContext, describe, describe_repr
 from liblaf.pretty._spec import SpecLeaf, SpecNode
-from liblaf.pretty._trace import Ref
+from liblaf.pretty._trace import ObjectIdentifier
 
 
 @describe.register_type(types.NoneType)
 def _describe_none(obj: None, _ctx: DescribeContext, _depth: int) -> SpecNode:
     return SpecLeaf(
-        Text("None", "repr.none"), ref=Ref.from_obj(obj), referencable=False
+        Text("None", "repr.none"),
+        ref=ObjectIdentifier.from_obj(obj),
+        referencable=False,
     )
 
 
@@ -20,7 +22,9 @@ def _describe_ellipsis(
     obj: types.EllipsisType, _ctx: DescribeContext, _depth: int
 ) -> SpecNode:
     return SpecLeaf(
-        Text("...", "repr.ellipsis"), ref=Ref.from_obj(obj), referencable=False
+        Text("...", "repr.ellipsis"),
+        ref=ObjectIdentifier.from_obj(obj),
+        referencable=False,
     )
 
 
@@ -29,7 +33,11 @@ def _describe_bool(obj: bool, _ctx: DescribeContext, _depth: int) -> SpecNode:  
     text: Text = (
         Text("True", "repr.bool_true") if obj else Text("False", "repr.bool_false")
     )
-    return SpecLeaf(text, ref=Ref.from_obj(obj), referencable=False)
+    return SpecLeaf(
+        text,
+        ref=ObjectIdentifier.from_obj(obj),
+        referencable=False,
+    )
 
 
 @describe.register_type(bytearray)
