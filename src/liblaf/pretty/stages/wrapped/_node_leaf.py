@@ -26,4 +26,5 @@ class WrappedLeaf(WrappedObject):
         if (ref := self.visit(ctx)) is not None:
             return (), ref
         traced = TracedLeaf(value=self.value, identifier=self.identifier)
+        ctx.trace_cache[self.identifier.id_] = traced
         return (), traced

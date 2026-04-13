@@ -89,7 +89,6 @@ packages = ["src/liblaf"]
 source = "vcs"
 
 [tool.importlinter]
-exclude_type_checking_imports = true
 root_package = "liblaf.pretty"
 
 [[tool.importlinter.contracts]]

@@ -1,14 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
-
 import attrs
 
-from liblaf.pretty._conf import PrettyOptions, config
-from liblaf.pretty.stages.traced import TracedObject
+from liblaf.pretty._config import PrettyOptions, config
+from liblaf.pretty.stages.traced import LowerContext, TracedObject
 
-if TYPE_CHECKING:
-    from ._node_base import WrappedNode
+from ._typename import disambiguate_typenames
 
 
 @attrs.define
@@ -18,5 +13,5 @@ class TraceContext:
     trace_cache: dict[int, TracedObject] = attrs.field(factory=dict)
     _types: set[type] = attrs.field(factory=set)
 
-    def wrap_eager(self, obj: Any) -> WrappedNode:
-        raise NotImplementedError
+    def finish(self) -> LowerContext:
+        return LowerContext(typenames=disambiguate_typenames(self._types))

@@ -1,18 +1,17 @@
-"""Public formatting entrypoints."""
-
 from typing import Any, Unpack
 
 import rich
 from rich.console import Console
 
-from ._conf import PrettyKwargs, PrettyOptions, config
-from ._describe import DescribeContext
-from ._lower import LoweredNode
-from ._spec import SpecNode, TraceContext
-from ._trace import LowerContext, TracedNode
+from liblaf.pretty.custom import PrettyContext
+from liblaf.pretty.stages.lowered import LoweredNode
+from liblaf.pretty.stages.traced import LowerContext, TracedNode
+from liblaf.pretty.stages.wrapped import WrappedNode
+
+from ._config import PrettyOptions, PrettyOverrides, config
 
 
-def pformat(obj: Any, **kwargs: Unpack[PrettyKwargs]) -> LoweredNode:
+def pformat(obj: Any, **kwargs: Unpack[PrettyOverrides]) -> LoweredNode:
     """Format an object into a Rich renderable.
 
     The returned value can be passed to ``Console.print()`` or converted into
@@ -26,18 +25,17 @@ def pformat(obj: Any, **kwargs: Unpack[PrettyKwargs]) -> LoweredNode:
     Returns:
         A lowered renderable node for the formatted object.
     """
-    kwargs: PrettyKwargs = {**config.to_dict(), **kwargs}
-    describe_ctx: DescribeContext = DescribeContext(options=PrettyOptions(**kwargs))
-    spec: SpecNode = describe_ctx.describe(obj)
-    trace_ctx: TraceContext = describe_ctx.finish()
-    traced: TracedNode = trace_ctx.trace(spec)
-    lower_ctx: LowerContext = trace_ctx.finish()
+    options: PrettyOptions = PrettyOptions(**{**config.to_dict(), **kwargs})
+    pretty_ctx: PrettyContext = PrettyContext(options=options)
+    wrapped: WrappedNode = pretty_ctx.wrap_lazy(obj)
+    traced: TracedNode = pretty_ctx.trace(wrapped)
+    lower_ctx: LowerContext = pretty_ctx.finish()
     lowered: LoweredNode = traced.lower(lower_ctx)
     return lowered
 
 
 def pprint(
-    obj: Any, *, console: Console | None = None, **kwargs: Unpack[PrettyKwargs]
+    obj: Any, *, console: Console | None = None, **kwargs: Unpack[PrettyOverrides]
 ) -> None:
     """Print a formatted object to a Rich console.
 

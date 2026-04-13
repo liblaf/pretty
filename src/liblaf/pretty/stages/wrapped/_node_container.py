@@ -56,4 +56,5 @@ class WrappedContainer(WrappedObject):
             empty=self.empty,
             identifier=self.identifier,
         )
+        ctx.trace_cache[self.identifier.id_] = traced
         return self.iter_children(ctx, traced), traced

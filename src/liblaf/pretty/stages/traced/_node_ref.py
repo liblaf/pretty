@@ -3,10 +3,10 @@ from typing import override
 import attrs
 from rich.text import Text
 
+from liblaf.pretty.common import ObjectIdentifier
 from liblaf.pretty.stages.lowered import LoweredLeaf
 
 from ._context import LowerContext
-from ._identifier import ObjectIdentifier
 from ._node_base import TracedNode
 
 

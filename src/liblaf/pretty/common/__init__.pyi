@@ -1,3 +1,4 @@
 from ._identifier import ObjectIdentifier
+from ._sentinel import TRUNCATED
 
-__all__ = ["ObjectIdentifier"]
+__all__ = ["TRUNCATED", "ObjectIdentifier"]
