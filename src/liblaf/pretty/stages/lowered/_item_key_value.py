@@ -33,16 +33,14 @@ class LoweredKeyValueItem(LoweredItem):
     def render(self, renderer: Renderer) -> RenderResult:
         if self._fits_inline(renderer):
             yield from self._render_inline(renderer)
+        elif self._fits_flat_flat(renderer):
+            yield from self._render_flat_flat(renderer)
+        elif self._fits_flat_break(renderer):
+            yield from self._render_flat_break(renderer)
+        elif self._fits_break_flat(renderer):
+            yield from self._render_break_flat(renderer)
         else:
-            yield from renderer.ensure_newline()
-            if self._fits_flat_flat(renderer):
-                yield from self._render_flat_flat(renderer)
-            elif self._fits_flat_break(renderer):
-                yield from self._render_flat_break(renderer)
-            elif self._fits_break_flat(renderer):
-                yield from self._render_break_flat(renderer)
-            else:
-                yield from self._render_break_break(renderer)
+            yield from self._render_break_break(renderer)
 
     def _fits_inline(self, renderer: Renderer) -> bool:
         return (
@@ -76,6 +74,7 @@ class LoweredKeyValueItem(LoweredItem):
         )
 
     def _render_flat_flat(self, renderer: Renderer) -> RenderResult:
+        yield from renderer.ensure_newline()
         yield from self.key.render_flat(renderer, annotation=False)
         yield from renderer.render(self.sep)
         yield from self.value.render_flat(renderer, annotation=False)
@@ -95,6 +94,7 @@ class LoweredKeyValueItem(LoweredItem):
         )
 
     def _render_flat_break(self, renderer: Renderer) -> RenderResult:
+        yield from renderer.ensure_newline()
         yield from self.key.render_flat(renderer, annotation=False)
         yield from renderer.render(self.sep)
         yield from self.value.render_break(renderer, annotation=True)
@@ -107,12 +107,12 @@ class LoweredKeyValueItem(LoweredItem):
             + self.sep.cell_len
             + self.value.width_flat
             + self.suffix.cell_len
-            + self.key.annotation.cell_len
             + self.value.annotation.cell_len
             <= renderer.remaining_width
         )
 
     def _render_break_flat(self, renderer: Renderer) -> RenderResult:
+        yield from renderer.ensure_newline()
         yield from self.key.render_break(renderer, annotation=True)
         yield from renderer.render(self.sep)
         yield from self.value.render_flat(renderer, annotation=False)
@@ -122,6 +122,7 @@ class LoweredKeyValueItem(LoweredItem):
         yield from renderer.ensure_newline()
 
     def _render_break_break(self, renderer: Renderer) -> RenderResult:
+        yield from renderer.ensure_newline()
         yield from self.key.render_break(renderer, annotation=True)
         yield from renderer.render(self.sep)
         yield from self.value.render_break(renderer, annotation=True)

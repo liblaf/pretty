@@ -48,7 +48,6 @@ class LoweredLeaf(LoweredNode):
         yield from renderer.render(self.value)
         if annotation and self.annotation:
             yield from renderer.render(self.annotation)
-            yield from renderer.ensure_newline()
 
     @override
     def render_break(
