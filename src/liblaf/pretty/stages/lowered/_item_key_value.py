@@ -126,6 +126,4 @@ class LoweredKeyValueItem(LoweredItem):
         yield from renderer.render(self.sep)
         yield from self.value.render_break(renderer, annotation=True)
         yield from renderer.render(self.suffix)
-        if self.key.annotation:
-            yield from renderer.render(self.key.annotation)
         yield from renderer.ensure_newline()

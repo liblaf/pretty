@@ -11,7 +11,7 @@ class TraceContext:
     depth: int = 0
     options: PrettyOptions = attrs.field(factory=config.dump)
     trace_cache: dict[int, TracedObject] = attrs.field(factory=dict)
-    _types: set[type] = attrs.field(factory=set)
+    types: set[type] = attrs.field(factory=set)
 
     def finish(self) -> LowerContext:
-        return LowerContext(typenames=disambiguate_typenames(self._types))
+        return LowerContext(typenames=disambiguate_typenames(self.types))

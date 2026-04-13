@@ -1,9 +1,11 @@
 from collections import defaultdict
 
+_BUILTIN_TYPENAMES: dict[type, str] = {dict: "", list: "", set: "", tuple: ""}
+
 
 def disambiguate_typenames(types: set[type]) -> dict[type, str]:
     candidates: dict[type, list[str]] = {cls: _candidates(cls) for cls in types}
-    rungs: dict[type, int] = dict.fromkeys(types, 1)
+    rungs: dict[type, int] = dict.fromkeys(types, 0)
     while True:
         groups: dict[str, list[type]] = defaultdict(list)
         for cls, cls_candidates in candidates.items():
@@ -18,8 +20,10 @@ def disambiguate_typenames(types: set[type]) -> dict[type, str]:
         if not updates:
             break
         for cls in updates:
-            rungs[cls] += 1
-    return {cls: candidates[cls][rungs[cls]] for cls in types}
+            rungs[cls] = min(rungs[cls] + 1, len(candidates[cls]) - 1)
+    typenames: dict[type, str] = {cls: candidates[cls][rungs[cls]] for cls in types}
+    typenames.update(_BUILTIN_TYPENAMES)
+    return typenames
 
 
 def _candidates(cls: type) -> list[str]:

@@ -22,6 +22,7 @@ class LoweredNode(Lowered):
             yield from self.render_flat(renderer, annotation=True)
         else:
             yield from self.render_break(renderer, annotation=True)
+        yield from renderer.ensure_newline()
 
     @functools.cached_property
     @abc.abstractmethod

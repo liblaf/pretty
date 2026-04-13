@@ -18,7 +18,9 @@ class WrappedLeaf(WrappedObject):
     @classmethod
     def ellipsis(cls) -> Self:
         return cls(
-            value=ELLIPSIS, identifier=ObjectIdentifier.missing(), referencable=False
+            value=ELLIPSIS,
+            identifier=ObjectIdentifier.from_obj(...),
+            referencable=False,
         )
 
     @override
