@@ -7,7 +7,12 @@ from typing import TYPE_CHECKING, NamedTuple
 import attrs
 
 from liblaf.pretty._conf import PrettyOptions, config
-from liblaf.pretty._trace import LowerContext, TracedContainer, TracedLeaf, TracedNode
+from liblaf.pretty.stages.traced import (
+    LowerContext,
+    TracedContainer,
+    TracedLeaf,
+    TracedNode,
+)
 
 from ._typename import disambiguate_typenames
 

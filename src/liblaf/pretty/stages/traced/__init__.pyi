@@ -1,6 +1,5 @@
 from ._base import Traced
 from ._context import LowerContext
-from ._identifier import ObjectIdentifier
 from ._item_base import TracedItem
 from ._item_key_value import TracedKeyValueItem
 from ._item_name_value import TracedNameValueItem
@@ -15,7 +14,6 @@ from ._node_ref import TracedRef
 __all__ = [
     "TRACED_MISSING",
     "LowerContext",
-    "ObjectIdentifier",
     "Traced",
     "TracedContainer",
     "TracedItem",

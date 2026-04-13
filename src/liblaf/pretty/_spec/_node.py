@@ -8,7 +8,7 @@ import attrs
 from rich.text import Text
 
 from liblaf.pretty._const import ELLIPSIS
-from liblaf.pretty._trace import (
+from liblaf.pretty.stages.traced import (
     ObjectIdentifier,
     TracedContainer,
     TracedLeaf,

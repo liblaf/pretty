@@ -1,19 +1,15 @@
-from __future__ import annotations
-
 import abc
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, override
+from typing import override
 
 import attrs
 from rich.text import Text
 
-from liblaf.pretty._trace import TracedItem
 from liblaf.pretty.literals import EMPTY
+from liblaf.pretty.stages.traced import TracedItem
 
-from ._base import Child, Wrapped
-
-if TYPE_CHECKING:
-    from ._context import TraceContext
+from ._base import Wrapped, WrappedChild
+from ._context import TraceContext
 
 
 @attrs.define
@@ -23,4 +19,4 @@ class WrappedItem(Wrapped):
 
     @override
     @abc.abstractmethod
-    def trace(self, ctx: TraceContext) -> tuple[Iterable[Child], TracedItem]: ...
+    def trace(self, ctx: TraceContext) -> tuple[Iterable[WrappedChild], TracedItem]: ...

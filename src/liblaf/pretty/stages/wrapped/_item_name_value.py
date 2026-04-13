@@ -1,19 +1,15 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, override
+from typing import override
 
 import attrs
 from rich.text import Text
 
-from liblaf.pretty._trace import TRACED_MISSING, TracedNameValueItem
 from liblaf.pretty.literals import EQUAL
+from liblaf.pretty.stages.traced import TRACED_MISSING, TracedNameValueItem
 
-from ._base import Child
+from ._base import WrappedChild
+from ._context import TraceContext
 from ._item_base import WrappedItem
 from ._node_base import WrappedNode
-
-if TYPE_CHECKING:
-    from ._context import TraceContext
 
 
 @attrs.define
@@ -23,7 +19,9 @@ class WrappedNameValueItem(WrappedItem):
     value: WrappedNode
 
     @override
-    def trace(self, ctx: TraceContext) -> tuple[tuple[Child], TracedNameValueItem]:
+    def trace(
+        self, ctx: TraceContext
+    ) -> tuple[tuple[WrappedChild], TracedNameValueItem]:
         traced: TracedNameValueItem = TracedNameValueItem(
             prefix=self.prefix,
             name=self.name,
@@ -31,7 +29,7 @@ class WrappedNameValueItem(WrappedItem):
             value=TRACED_MISSING,
             suffix=self.suffix,
         )
-        child: Child = Child(
+        child: WrappedChild = WrappedChild(
             wrapped=self.value,
             depth=ctx.depth,
             attach=traced.attach_value,  # ty:ignore[invalid-argument-type]

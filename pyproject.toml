@@ -31,7 +31,7 @@ dependencies = [
   "fieldz>=0.1",
   "lazy-loader>=0.1",
   "liblaf-conf>=0.1.1",
-  "rich>=14.3",
+  "rich>=14.3"
 ]
 dynamic = ["version"]
 
@@ -89,6 +89,7 @@ packages = ["src/liblaf"]
 source = "vcs"
 
 [tool.importlinter]
+exclude_type_checking_imports = true
 root_package = "liblaf.pretty"
 
 [[tool.importlinter.contracts]]

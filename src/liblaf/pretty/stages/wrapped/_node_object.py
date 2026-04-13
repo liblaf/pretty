@@ -1,15 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import attrs
 
-from liblaf.pretty._trace import TracedRef
+from liblaf.pretty.stages.traced import TracedRef
 
+from ._context import TraceContext
 from ._node_base import WrappedNode
-
-if TYPE_CHECKING:
-    from ._context import TraceContext
 
 
 @attrs.define

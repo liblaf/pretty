@@ -18,8 +18,8 @@ from liblaf.pretty._spec import (
     SpecValueItem,
     TraceContext,
 )
-from liblaf.pretty._trace import TRUNCATED, ObjectIdentifier
 from liblaf.pretty._utils import as_text
+from liblaf.pretty.stages.traced import TRUNCATED, ObjectIdentifier
 
 from ._registry import DescribeRegistry, describe
 
@@ -60,9 +60,7 @@ class DescribeContext:
         yield current
 
     @overload
-    def _identifier(
-        self, *, obj: Any, identifier: None = None
-    ) -> ObjectIdentifier: ...
+    def _identifier(self, *, obj: Any, identifier: None = None) -> ObjectIdentifier: ...
     @overload
     def _identifier(
         self, *, obj: None = None, identifier: ObjectIdentifier

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple, Protocol, cast, overload
 import attrs
 
 from liblaf.pretty._spec import SpecNode
-from liblaf.pretty._trace import TRUNCATED
+from liblaf.pretty.stages.traced import TRUNCATED
 
 from ._lazy import LazySpec
 from ._repr import describe_repr

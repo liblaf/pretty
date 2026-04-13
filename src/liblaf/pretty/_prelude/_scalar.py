@@ -5,7 +5,7 @@ from rich.text import Text
 
 from liblaf.pretty._describe import DescribeContext, describe, describe_repr
 from liblaf.pretty._spec import SpecLeaf, SpecNode
-from liblaf.pretty._trace import ObjectIdentifier
+from liblaf.pretty.stages.traced import ObjectIdentifier
 
 
 @describe.register_type(types.NoneType)

@@ -1,19 +1,16 @@
-from __future__ import annotations
-
 from collections.abc import Generator, Iterable
-from typing import TYPE_CHECKING, override
+from typing import override
 
 import attrs
 from rich.text import Text
 
-from liblaf.pretty._trace import TracedContainer, TracedNode
+from liblaf.pretty.stages.traced import TracedContainer, TracedNode
 
-from ._base import Child
+from ._base import WrappedChild
+from ._context import TraceContext
 from ._item_base import WrappedItem
+from ._item_positional import WrappedPositionalItem
 from ._node_object import WrappedObject
-
-if TYPE_CHECKING:
-    from ._context import TraceContext
 
 
 @attrs.define
@@ -32,16 +29,23 @@ class WrappedContainer(WrappedObject):
 
     def iter_children(
         self, ctx: TraceContext, traced: TracedContainer
-    ) -> Generator[Child]:
+    ) -> Generator[WrappedChild]:
         for child in self.children:
-            yield Child(
+            if ctx.depth >= ctx.options.max_level:
+                yield WrappedChild(
+                    wrapped=WrappedPositionalItem.ellipsis(),
+                    depth=ctx.depth + 1,
+                    attach=traced.children.append,  # ty:ignore[invalid-argument-type]
+                )
+                break
+            yield WrappedChild(
                 wrapped=child,
                 depth=ctx.depth + 1,
                 attach=traced.children.append,  # ty:ignore[invalid-argument-type]
             )
 
     @override
-    def trace(self, ctx: TraceContext) -> tuple[Iterable[Child], TracedNode]:
+    def trace(self, ctx: TraceContext) -> tuple[Iterable[WrappedChild], TracedNode]:
         if (ref := self.visit(ctx)) is not None:
             return (), ref
         traced = TracedContainer(
@@ -49,7 +53,6 @@ class WrappedContainer(WrappedObject):
             children=[],
             end=self.end,
             indent=self.indent,
-            has_ref=False,
             empty=self.empty,
             identifier=self.identifier,
         )

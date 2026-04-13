@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Protocol, override
 import attrs
 
 from liblaf.pretty._spec import SpecNode, TraceContext
-from liblaf.pretty._trace import TracedNode
+from liblaf.pretty.stages.traced import TracedNode
 
 if TYPE_CHECKING:
     from ._context import DescribeContext

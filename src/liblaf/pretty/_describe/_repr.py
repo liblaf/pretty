@@ -7,8 +7,8 @@ from rich.highlighter import ReprHighlighter
 from rich.text import Text
 
 from liblaf.pretty._spec import SpecLeaf, SpecNode
-from liblaf.pretty._trace import ObjectIdentifier
 from liblaf.pretty._utils import has_ansi
+from liblaf.pretty.stages.traced import ObjectIdentifier
 
 if TYPE_CHECKING:
     from ._context import DescribeContext
