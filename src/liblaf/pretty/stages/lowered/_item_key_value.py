@@ -1,14 +1,15 @@
 import functools
-import math
-from typing import override
+from collections.abc import Generator
+from typing import cast, override
 
 import attrs
 from rich.console import RenderResult
 from rich.text import Text
 
+from ._context import CompileContext
 from ._item_base import LoweredItem
+from ._layout import Layout
 from ._node_base import LoweredNode
-from ._renderer import Renderer
 
 
 @attrs.frozen
@@ -18,11 +19,17 @@ class LoweredKeyValueItem(LoweredItem):
     value: LoweredNode
 
     @functools.cached_property
-    def width_inline(self) -> int | float:
-        if self.key.annotation or self.value.annotation:
-            return math.inf
+    @override
+    def width_inline(self) -> int | None:
+        if (
+            self.key.annotation
+            or self.value.annotation
+            or self.key.width_flat is None
+            or self.value.width_flat is None
+        ):
+            return None
         return (
-            self.prefix.cell_len
+            +self.prefix.cell_len
             + self.key.width_flat
             + self.sep.cell_len
             + self.value.width_flat
@@ -30,101 +37,169 @@ class LoweredKeyValueItem(LoweredItem):
         )
 
     @override
-    def render(self, renderer: Renderer) -> RenderResult:
-        if self._fits_inline(renderer):
-            yield from self._render_inline(renderer)
-        elif self._fits_flat_flat(renderer):
-            yield from self._render_flat_flat(renderer)
-        elif self._fits_flat_break(renderer):
-            yield from self._render_flat_break(renderer)
-        elif self._fits_break_flat(renderer):
-            yield from self._render_break_flat(renderer)
-        else:
-            yield from self._render_break_break(renderer)
+    def layouts(self) -> Generator[Layout]:
+        yield Inline(self)
+        yield FlatFlat(self)
+        yield FlatBreak(self)
+        yield BreakFlat(self)
+        yield BreakBreak(self)
 
-    def _fits_inline(self, renderer: Renderer) -> bool:
+
+@attrs.frozen
+class Inline(Layout):
+    item: LoweredKeyValueItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
         return (
-            renderer.column > 0
-            and not self.key.annotation
-            and not self.value.annotation
-            and self.prefix.cell_len
-            + self.key.width_flat
-            + self.sep.cell_len
-            + self.value.width_flat
-            + self.suffix.cell_len
-            <= renderer.remaining_width
+            self.item.prefix.cell_len
+            + cast("int", self.item.key.width_flat)
+            + self.item.sep.cell_len
+            + cast("int", self.item.value.width_flat)
+            + self.item.suffix.cell_len
+            <= ctx.remaining_width
         )
 
-    def _render_inline(self, renderer: Renderer) -> RenderResult:
-        yield from renderer.render(self.prefix)
-        yield from self.key.render_flat(renderer)
-        yield from renderer.render(self.sep)
-        yield from self.value.render_flat(renderer)
-        yield from renderer.render(self.suffix)
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.render(self.item.prefix)
+        yield from self.item.key.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.sep)
+        yield from self.item.value.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.suffix)
 
-    def _fits_flat_flat(self, renderer: Renderer) -> bool:
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
         return (
-            not self.key.annotation
-            and self.key.width_flat
-            + self.sep.cell_len
-            + self.value.width_flat
-            + self.suffix.cell_len
-            + self.value.annotation.cell_len
-            <= renderer.remaining_width
+            ctx.column > 0
+            and not self.item.key.annotation
+            and not self.item.value.annotation
+            and self.item.key.width_flat is not None
+            and self.item.value.width_flat is not None
         )
 
-    def _render_flat_flat(self, renderer: Renderer) -> RenderResult:
-        yield from renderer.ensure_newline()
-        yield from self.key.render_flat(renderer, annotation=False)
-        yield from renderer.render(self.sep)
-        yield from self.value.render_flat(renderer, annotation=False)
-        yield from renderer.render(self.suffix)
-        if self.value.annotation:
-            yield from renderer.render(self.value.annotation)
-            yield from renderer.ensure_newline()
 
-    def _fits_flat_break(self, renderer: Renderer) -> bool:
+@attrs.frozen
+class FlatFlat(Layout):
+    item: LoweredKeyValueItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
         return (
-            not self.key.annotation
-            and self.key.width_flat
-            + self.sep.cell_len
-            + self.value.width_break_begin
-            + self.value.annotation.cell_len
-            <= renderer.remaining_width
+            cast("int", self.item.key.width_flat)
+            + self.item.sep.cell_len
+            + cast("int", self.item.value.width_flat)
+            + self.item.suffix.cell_len
+            + self.item.value.annotation.cell_len
+            <= ctx.remaining_width
         )
 
-    def _render_flat_break(self, renderer: Renderer) -> RenderResult:
-        yield from renderer.ensure_newline()
-        yield from self.key.render_flat(renderer, annotation=False)
-        yield from renderer.render(self.sep)
-        yield from self.value.render_break(renderer, annotation=True)
-        yield from renderer.render(self.suffix)
-        yield from renderer.ensure_newline()
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.ensure_newline()
+        yield from self.item.key.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.sep)
+        yield from self.item.value.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.suffix)
+        if self.item.value.annotation:
+            yield from ctx.render(self.item.value.annotation)
+            yield from ctx.ensure_newline()
 
-    def _fits_break_flat(self, renderer: Renderer) -> bool:
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
         return (
-            self.key.width_break_end
-            + self.sep.cell_len
-            + self.value.width_flat
-            + self.suffix.cell_len
-            + self.value.annotation.cell_len
-            <= renderer.remaining_width
+            not self.item.key.annotation
+            and self.item.key.width_flat is not None
+            and self.item.value.width_flat is not None
         )
 
-    def _render_break_flat(self, renderer: Renderer) -> RenderResult:
-        yield from renderer.ensure_newline()
-        yield from self.key.render_break(renderer, annotation=True)
-        yield from renderer.render(self.sep)
-        yield from self.value.render_flat(renderer, annotation=False)
-        yield from renderer.render(self.suffix)
-        if self.value.annotation:
-            yield from renderer.render(self.value.annotation)
-        yield from renderer.ensure_newline()
 
-    def _render_break_break(self, renderer: Renderer) -> RenderResult:
-        yield from renderer.ensure_newline()
-        yield from self.key.render_break(renderer, annotation=True)
-        yield from renderer.render(self.sep)
-        yield from self.value.render_break(renderer, annotation=True)
-        yield from renderer.render(self.suffix)
-        yield from renderer.ensure_newline()
+@attrs.frozen
+class FlatBreak(Layout):
+    item: LoweredKeyValueItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
+        return (
+            cast("int", self.item.key.width_flat)
+            + self.item.sep.cell_len
+            + cast("int", self.item.value.width_break_begin)
+            + self.item.value.annotation.cell_len
+            <= ctx.remaining_width
+        )
+
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.ensure_newline()
+        yield from self.item.key.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.sep)
+        yield from self.item.value.render_break(ctx, annotation=True)
+        yield from ctx.render(self.item.suffix)
+        yield from ctx.ensure_newline()
+
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
+        return (
+            not self.item.key.annotation
+            and self.item.key.width_flat is not None
+            and self.item.value.width_break_begin is not None
+        )
+
+
+@attrs.frozen
+class BreakFlat(Layout):
+    item: LoweredKeyValueItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
+        return (
+            cast("int", self.item.key.width_break_end)
+            + self.item.sep.cell_len
+            + cast("int", self.item.value.width_flat)
+            + self.item.suffix.cell_len
+            + self.item.value.annotation.cell_len
+            <= ctx.remaining_width
+        )
+
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.ensure_newline()
+        yield from self.item.key.render_break(ctx, annotation=True)
+        yield from ctx.render(self.item.sep)
+        yield from self.item.value.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.suffix)
+        if self.item.value.annotation:
+            yield from ctx.render(self.item.value.annotation)
+        yield from ctx.ensure_newline()
+
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
+        return (
+            self.item.key.width_break_end is not None
+            and self.item.value.width_flat is not None
+        )
+
+
+@attrs.frozen
+class BreakBreak(Layout):
+    item: LoweredKeyValueItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
+        return True  # fallback
+
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.ensure_newline()
+        yield from self.item.key.render_break(ctx, annotation=True)
+        yield from ctx.render(self.item.sep)
+        yield from self.item.value.render_break(ctx, annotation=True)
+        yield from ctx.render(self.item.suffix)
+        yield from ctx.ensure_newline()
+
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
+        return (
+            self.item.key.width_break_end is not None
+            and self.item.value.width_break_begin is not None
+        )

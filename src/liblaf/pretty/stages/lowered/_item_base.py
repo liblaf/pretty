@@ -1,4 +1,5 @@
 import abc
+import functools
 
 import attrs
 from rich.text import Text
@@ -13,6 +14,6 @@ class LoweredItem(Lowered):
     prefix: Text = attrs.field(default=EMPTY, kw_only=True)
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 
-    @property
+    @functools.cached_property
     @abc.abstractmethod
-    def width_inline(self) -> int | float: ...
+    def width_inline(self) -> int | None: ...

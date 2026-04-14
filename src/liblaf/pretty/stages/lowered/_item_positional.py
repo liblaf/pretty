@@ -1,6 +1,7 @@
 import functools
 import math
-from typing import Self, override
+from collections.abc import Generator
+from typing import Self, cast, override
 
 import attrs
 from rich.console import RenderResult
@@ -8,10 +9,11 @@ from rich.text import Text
 
 from liblaf.pretty.literals import EMPTY
 
+from ._context import CompileContext
 from ._item_base import LoweredItem
+from ._layout import Layout
 from ._node_base import LoweredNode
 from ._node_leaf import LoweredLeaf
-from ._renderer import Renderer
 
 
 @attrs.frozen
@@ -22,51 +24,86 @@ class LoweredPositionalItem(LoweredItem):
     def ellipsis(cls, *, prefix: Text = EMPTY, suffix: Text = EMPTY) -> Self:
         return cls(LoweredLeaf.ellipsis(), prefix=prefix, suffix=suffix)
 
+    @override
+    def layouts(self) -> Generator[Layout]:
+        yield Inline(self)
+        yield Flat(self)
+        yield Break(self)
+
     @functools.cached_property
-    def width_inline(self) -> int | float:
-        if self.value.annotation:
-            return math.inf
+    @override
+    def width_inline(self) -> int | None:
+        if self.value.annotation or self.value.width_flat is None:
+            return None
         return self.prefix.cell_len + self.value.width_flat + self.suffix.cell_len
 
+
+@attrs.frozen
+class Inline(Layout):
+    item: LoweredPositionalItem
+
     @override
-    def render(self, renderer: Renderer) -> RenderResult:
-        if self._fits_inline(renderer):
-            yield from self._render_inline(renderer)
-        else:
-            yield from renderer.ensure_newline()
-            if self._fits_flat(renderer):
-                yield from self._render_flat(renderer)
-            else:
-                yield from self._render_break(renderer)
-
-    def _fits_inline(self, renderer: Renderer) -> bool:
+    def fits(self, ctx: CompileContext) -> bool:
         return (
-            renderer.column > 0
-            and not self.value.annotation
-            and self.width_inline <= renderer.remaining_width
+            self.item.prefix.cell_len
+            + cast("int", self.item.value.width_flat)
+            + self.item.suffix.cell_len
+            <= ctx.remaining_width
         )
 
-    def _render_inline(self, renderer: Renderer) -> RenderResult:
-        yield from renderer.render(self.prefix)
-        yield from self.value.render_flat(renderer, annotation=False)
-        yield from renderer.render(self.suffix)
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.render(self.item.prefix)
+        yield from self.item.value.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.suffix)
 
-    def _fits_flat(self, renderer: Renderer) -> bool:
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
+        return ctx.column > 0 and self.item.value.width_flat is not None
+
+
+@attrs.frozen
+class Flat(Layout):
+    item: LoweredPositionalItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
         return (
-            self.value.width_flat
-            + self.suffix.cell_len
-            + self.value.annotation.cell_len
-            <= renderer.remaining_width
+            cast("int", self.item.value.width_flat)
+            + self.item.suffix.cell_len
+            + self.item.value.annotation.cell_len
+            <= ctx.remaining_width
         )
 
-    def _render_flat(self, renderer: Renderer) -> RenderResult:
-        yield from self.value.render_flat(renderer, annotation=False)
-        yield from renderer.render(self.suffix)
-        if self.value.annotation:
-            yield from renderer.render(self.value.annotation)
-            yield from renderer.ensure_newline()
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.ensure_newline()
+        yield from self.item.value.render_flat(ctx, annotation=False)
+        yield from ctx.render(self.item.suffix)
+        if self.item.value.annotation:
+            yield from ctx.render(self.item.value.annotation)
+            yield from ctx.ensure_newline()
 
-    def _render_break(self, renderer: Renderer) -> RenderResult:
-        yield from self.value.render_break(renderer, annotation=True)
-        yield from renderer.render(self.suffix)
-        yield from renderer.ensure_newline()
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
+        return self.item.value.width_flat is not None
+
+
+@attrs.frozen
+class Break(Layout):
+    item: LoweredPositionalItem
+
+    @override
+    def fits(self, ctx: CompileContext) -> bool:
+        return True  # fallback
+
+    @override
+    def render(self, ctx: CompileContext) -> RenderResult:
+        yield from ctx.ensure_newline()
+        yield from self.item.value.render_break(ctx, annotation=True)
+        yield from ctx.render(self.item.suffix)
+        yield from ctx.ensure_newline()
+
+    @override
+    def supports(self, ctx: CompileContext) -> bool:
+        return self.item.value.width_break_begin is not None

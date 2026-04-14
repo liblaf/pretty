@@ -31,7 +31,7 @@ def _default_console() -> Console:
 
 
 @attrs.define
-class Renderer:
+class CompileContext:
     console: Console = attrs.field(factory=_default_console)
     column: int = attrs.field(default=0, kw_only=True)
     prefix: Segments = attrs.field(factory=Segments, kw_only=True)
@@ -42,7 +42,7 @@ class Renderer:
         )
 
     _options: ConsoleOptions = attrs.field(
-        default=attrs.Factory(_default_options, takes_self=True)
+        default=attrs.Factory(_default_options, takes_self=True), alias="options"
     )
 
     @property

@@ -1,9 +1,11 @@
 import abc
+from collections.abc import Iterable
 
 import attrs
 from rich.console import Console, ConsoleOptions, RenderResult
 
-from ._renderer import Renderer
+from ._context import CompileContext
+from ._layout import Layout, choose_layout
 
 
 @attrs.frozen
@@ -11,11 +13,15 @@ class Lowered(abc.ABC):
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
-        renderer: Renderer = Renderer(console, options)
-        yield from self.render(renderer)
+        ctx: CompileContext = CompileContext(console, options)
+        return self.render(ctx)
 
     @abc.abstractmethod
-    def render(self, renderer: Renderer) -> RenderResult: ...
+    def layouts(self) -> Iterable[Layout]: ...
+
+    def render(self, ctx: CompileContext) -> RenderResult:
+        layout: Layout = choose_layout(self.layouts(), ctx)
+        return layout.render(ctx)
 
     def to_plain(self, console: Console | None = None, **kwargs) -> str:
         if console is None:
