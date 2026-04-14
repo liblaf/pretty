@@ -1,3 +1,5 @@
+"""Registration helpers for custom pretty handlers."""
+
 from __future__ import annotations
 
 import functools
@@ -21,6 +23,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PrettyHandler[T](Protocol):
+    """Callable that turns an object into a wrapped node or returns `None`."""
+
     def __call__(self, obj: T, ctx: PrettyContext, /) -> WrappedNode | None: ...
 
 
@@ -40,6 +44,8 @@ def _default_type_dispatcher() -> functools._SingleDispatchCallable[WrappedNode 
 
 @attrs.define
 class PrettyRegistry:
+    """Dispatch custom handlers before falling back to repr-style formatting."""
+
     handlers: list[PrettyHandler[Any]] = attrs.field(factory=list)
     lazy_handlers: dict[_LazyType, PrettyHandler[Any]] = attrs.field(factory=dict)
     type_dispatcher: functools._SingleDispatchCallable[WrappedNode | None] = (
@@ -47,6 +53,7 @@ class PrettyRegistry:
     )
 
     def __call__(self, obj: Any, ctx: PrettyContext) -> WrappedNode:
+        """Resolve one object to a wrapped node."""
         if (pretty := getattr(obj, "__pretty__", None)) is not None and (
             wrapped := pretty(ctx)
         ) is not None:
@@ -60,6 +67,11 @@ class PrettyRegistry:
         return pretty_repr(obj, ctx)
 
     def register_func[F: PrettyHandler[Any]](self, func: F) -> F:
+        """Register a structural handler.
+
+        Structural handlers run after type-based dispatch and may return `None`
+        to fall through to the next handler.
+        """
         self.handlers.append(func)
         return func
 
@@ -74,6 +86,7 @@ class PrettyRegistry:
     def register_lazy[F: PrettyHandler[Any]](
         self, module: str, name: str, func: F | None = None
     ) -> Callable[..., Any]:
+        """Register a handler for a type that may be imported later."""
         if func is None:
             return functools.partial(self.register_lazy, module, name)
         self.lazy_handlers[_LazyType(module, name)] = func
@@ -88,11 +101,13 @@ class PrettyRegistry:
     def register_type[F: PrettyHandler[Any]](
         self, cls: type, func: F | None = None
     ) -> Callable[..., Any]:
+        """Register a handler for a concrete Python class."""
         if func is None:
             return functools.partial(self.register_type, cls)
         return self.type_dispatcher.register(cls, func)
 
     def resolve_lazy(self) -> None:
+        """Attach lazy handlers whose modules are already imported."""
         for (module_name, cls_name), handler in list(self.lazy_handlers.items()):
             module: types.ModuleType | None = sys.modules.get(module_name)
             if module is None:

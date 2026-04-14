@@ -19,9 +19,9 @@ words:
   - cupy
   - fieldz
   - grimp
+  - hexid
   - hynek
   - inlinehilite
-  - kwargs
   - liblaf
   - linenums
   - lucide
@@ -44,7 +44,6 @@ words:
   - pyvista
   - repr
   - reprlib
-  - reprs
   - rumdl
   - sdist
   - taiki

@@ -1,3 +1,5 @@
+"""Extension hooks for custom pretty handlers."""
+
 from ._context import PrettyContext
 
 # register prelude handlers

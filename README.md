@@ -1,12 +1,21 @@
 # Pretty
 
-`liblaf.pretty` formats Python objects into Rich renderables with width-aware
-layout, repr-style truncation, and stable shared-reference tracking.
+`liblaf.pretty` formats Python objects as Rich renderables. It keeps repr-like
+syntax, decides where to break lines at render time, truncates large values,
+and annotates repeated references instead of recursing forever.
+
+## Install
+
+```bash
+uv add liblaf-pretty
+# or
+pip install liblaf-pretty
+```
 
 ## Quick Start
 
-Use `pformat()` when you want a renderable object that can be printed through
-Rich or captured as deterministic plain text:
+Use `pformat()` when you want a Rich renderable that can be printed directly or
+captured as deterministic plain text:
 
 ```python
 from rich.console import Console
@@ -16,7 +25,7 @@ from liblaf.pretty import pformat
 rendered = pformat({"alpha": [1, 2, 3]})
 console = Console(width=12, color_system=None, soft_wrap=True)
 
-print(rendered.to_plain(console))
+print(rendered.to_plain(console), end="")
 ```
 
 ```text
@@ -28,8 +37,7 @@ print(rendered.to_plain(console))
 }
 ```
 
-Use `pprint()` or `pp()` when you want to send the formatted object directly to
-the active Rich console:
+If you already have a Rich console, use `pprint()` or its alias `pp()`:
 
 ```python
 from liblaf.pretty import pprint
@@ -40,38 +48,59 @@ pprint({"alpha": [1, 2, 3]}, max_list=3)
 ## What It Handles
 
 - Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- Repr-style truncation for deep, long, or large values
-- `attrs` and `fieldz` objects, including `repr=False` fields and hidden defaults
+- Repr-style truncation for deep, wide, or long values
+- `attrs` and `fieldz` objects, with default-valued fields hidden by default
 - Objects with `__rich_repr__`
 - Shared and cyclic references
-- Advanced `__pretty__(ctx, depth)` hooks
+- Custom handlers via `register_type()`, `register_func()`, `register_lazy()`,
+  or `__pretty__(self, ctx)`
 
-## Formatting Knobs
+## Configuration
 
-The top-level formatters accept keyword arguments, not a `PrettyOptions`
-instance:
+The public formatters accept keyword overrides for:
 
 - `max_level`, `max_list`, `max_array`, `max_dict`
 - `max_string`, `max_long`, `max_other`
 - `indent`
 - `hide_defaults`
 
-Explicit keyword arguments override the environment-backed defaults loaded from
-`PRETTY_*` variables.
+Those overrides sit on top of environment-backed defaults loaded from
+`PRETTY_*` variables. Width is still chosen later, when Rich renders the result
+through a `Console`.
 
-Width is chosen when you render the result through a Rich `Console`, not when
-you call `pformat()`.
-
-## Public Surface
-
-The top-level package exports:
+## Custom Formatting
 
 ```python
-from liblaf.pretty import DescribeContext, describe, pformat, pp, pprint
+from rich.text import Text
+
+from liblaf.pretty import pformat, register_type
+
+
+class Point:
+    def __init__(self, x: int, y: int) -> None:
+        self.x = x
+        self.y = y
+
+
+@register_type(Point)
+def _pretty_point(obj: Point, ctx):
+    return ctx.container(
+        obj=obj,
+        begin=Text("(", "repr.tag_start"),
+        children=[ctx.name_value("x", obj.x), ctx.name_value("y", obj.y)],
+        end=Text(")", "repr.tag_end"),
+    )
+
+
+print(pformat(Point(1, 2)).to_plain(), end="")
 ```
 
-`DescribeContext` and the shared `describe` registry are advanced extension
-points. Most callers only need `pformat()` or `pprint()`.
+```text
+Point(x=1, y=2)
+```
 
-For a longer guide, see [`docs/README.md`](docs/README.md). For signatures and
-docstrings, see [`docs/reference/README.md`](docs/reference/README.md).
+`ctx.container()` adds the type name for referencable objects, so custom
+handlers usually provide only the delimiters.
+
+The longer guide lives in [`docs/README.md`](docs/README.md), with a focused
+extension guide at [`docs/guides/custom-formatters.md`](docs/guides/custom-formatters.md).

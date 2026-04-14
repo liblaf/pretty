@@ -1,3 +1,5 @@
+"""Public formatting helpers."""
+
 from typing import Any, Unpack
 
 import rich
@@ -12,18 +14,26 @@ from ._config import PrettyOptions, PrettyOverrides, config
 
 
 def pformat(obj: Any, **kwargs: Unpack[PrettyOverrides]) -> LoweredNode:
-    """Format an object into a Rich renderable.
+    """Format an object into a width-aware Rich renderable.
 
-    The returned value can be passed to ``Console.print()`` or converted into
-    deterministic plain text with ``to_plain(console=...)``.
+    The returned value can be passed to `Console.print()` or converted into
+    deterministic plain text with
+    [`Lowered.to_plain`][liblaf.pretty.stages.lowered.Lowered.to_plain].
 
     Args:
         obj: Object to format.
         **kwargs: Formatting overrides merged over the environment-backed
-            defaults loaded from ``PRETTY_*`` variables.
+            defaults loaded from `PRETTY_*` variables.
 
     Returns:
         A lowered renderable node for the formatted object.
+
+    Examples:
+        ```python
+        from liblaf.pretty import pformat
+
+        print(pformat([1, 2, 3], max_list=1).to_plain(), end="")
+        ```
     """
     options: PrettyOptions = PrettyOptions(**{**config.to_dict(), **kwargs})
     pretty_ctx: PrettyContext = PrettyContext(options=options)
@@ -42,8 +52,8 @@ def pprint(
     Args:
         obj: Object to format and print.
         console: Console to print to. When omitted, use
-            :func:`rich.get_console`.
-        **kwargs: Formatting overrides forwarded to :func:`pformat`.
+            [`rich.get_console`][].
+        **kwargs: Formatting overrides forwarded to [liblaf.pretty.pformat][].
     """
     if console is None:
         console: Console = rich.get_console()

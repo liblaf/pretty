@@ -4,11 +4,12 @@
 # Basics
 site_name = "Pretty"
 site_url = "__SITE_URL__"
-site_description = ""
+site_description = "Pretty-print Python objects as Rich renderables with width-aware layout."
 site_author = "liblaf"
 # Navigation
 nav = [
   { "Home" = "README.md" },
+  { "Guides" = ["guides/custom-formatters.md"] },
   { "API Reference" = [
     { "<code class=\"doc-symbol doc-symbol-toc doc-symbol-module\"></code> liblaf.pretty" = [
       "reference/liblaf/pretty/README.md",
@@ -16,6 +17,7 @@ nav = [
       "reference/liblaf/pretty/custom/README.md",
       "reference/liblaf/pretty/literals.md",
       { "<code class=\"doc-symbol doc-symbol-toc doc-symbol-module\"></code> liblaf.pretty.stages" = [
+        "reference/liblaf/pretty/stages/README.md",
         "reference/liblaf/pretty/stages/lowered/README.md",
         "reference/liblaf/pretty/stages/traced/README.md",
         "reference/liblaf/pretty/stages/wrapped/README.md"

@@ -1,3 +1,5 @@
+"""Base classes for lowered renderables."""
+
 import abc
 from collections.abc import Iterable
 
@@ -10,6 +12,8 @@ from ._layout import Layout, choose_layout
 
 @attrs.frozen
 class Lowered(abc.ABC):
+    """Renderable output node produced by the pretty-print pipeline."""
+
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
@@ -24,6 +28,16 @@ class Lowered(abc.ABC):
         return layout.render(ctx)
 
     def to_plain(self, console: Console | None = None, **kwargs) -> str:
+        """Render this node to deterministic plain text.
+
+        Args:
+            console: Optional console to render through. When omitted, a
+                plain, no-color Rich console is created.
+            **kwargs: Extra keyword arguments forwarded to `Console.print()`.
+
+        Returns:
+            The rendered plain-text result.
+        """
         if console is None:
             console: Console = Console(
                 color_system=None,
