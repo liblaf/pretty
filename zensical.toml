@@ -12,6 +12,7 @@ nav = [
   { "API Reference" = [
     { "<code class=\"doc-symbol doc-symbol-toc doc-symbol-module\"></code> liblaf.pretty" = [
       "reference/liblaf/pretty/README.md",
+      "reference/liblaf/pretty/common/README.md",
       "reference/liblaf/pretty/custom/README.md",
       "reference/liblaf/pretty/literals.md",
       { "<code class=\"doc-symbol doc-symbol-toc doc-symbol-module\"></code> liblaf.pretty.stages" = [
