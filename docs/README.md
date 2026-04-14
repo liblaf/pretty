@@ -1,11 +1,10 @@
 # Pretty
 
 `liblaf.pretty` gives you repr-like output that stays readable when values get
-large, nested, shared, or cyclic. It builds a Rich renderable first, then lets
-you print it normally or capture width-aware plain text for logs, tests, and
-debug output.
+large, nested, shared, or cyclic. The formatter builds a Rich renderable first,
+then lets Rich decide the final layout for the active console width.
 
-## Start Here
+## Start With `pformat()`
 
 ```python
 from rich.console import Console
@@ -15,7 +14,7 @@ from liblaf.pretty import pformat
 rendered = pformat({"alpha": [1, 2, 3]})
 console = Console(width=12, color_system=None, soft_wrap=True)
 
-print(rendered.to_plain(console))
+print(rendered.to_plain(console), end="")
 ```
 
 ```text
@@ -27,36 +26,16 @@ print(rendered.to_plain(console))
 }
 ```
 
-If you already have a Rich console and just want to print, call `pprint()` or
-its alias `pp()` instead.
+`pformat()` returns a Rich renderable, not a string. Use `console.print()` to
+render it normally, or `.to_plain(console=...)` when you want deterministic
+plain text for logs, tests, or snapshots.
 
-## How To Use It
-
-`pformat(obj, **kwargs)`
-: Return a Rich renderable for `obj`. The returned value also exposes
-  `.to_plain(console=...)` for deterministic plain-text captures.
-
-`pprint(obj, **kwargs)`
-: Format the object and print it to the active Rich console.
-
-`DescribeContext` and `describe`
-: Advanced extension points for projects that want to participate in the
-  describe/trace/lower pipeline directly.
-
-## Supported Behaviors
-
-- Builtin containers render with width-aware line breaking.
-- Large collections and long scalar reprs truncate according to configurable
-  limits.
-- `attrs` and `fieldz` objects honor `repr=False` and can hide default-valued
-  fields.
-- `__rich_repr__` is supported.
-- Shared references and cycles are annotated instead of recursing forever.
-- `__pretty__(ctx, depth)` can supply custom specs for advanced integrations.
+If you already have a Rich console, `pprint()` and `pp()` format and print in
+one step.
 
 ## Formatting Options
 
-The public formatting functions accept keyword arguments with these defaults:
+The public formatting functions accept these keyword overrides:
 
 | Keyword | Default | Meaning |
 | --- | --- | --- |
@@ -67,20 +46,78 @@ The public formatting functions accept keyword arguments with these defaults:
 | `max_string` | `30` | Maximum string repr length before truncation. |
 | `max_long` | `40` | Maximum integer repr length before truncation. |
 | `max_other` | `30` | Maximum repr length for other scalar values. |
-| `indent` | `"|   "` | Indentation inserted for broken layouts. |
-| `hide_defaults` | `True` | Hide default-valued fields from attrs and rich repr output. |
+| `indent` | `"|   "` | Indentation used when layouts break across lines. |
+| `hide_defaults` | `True` | Hide default-valued fields from `attrs` and `__rich_repr__` output. |
 
-Explicit kwargs override the environment-backed defaults loaded from `PRETTY_*`
-variables.
+Each value can also come from `PRETTY_*` environment variables. For example,
+`PRETTY_MAX_LIST=1` has the same effect as `pformat(obj, max_list=1)`.
 
-Width is controlled when you render the result through `Console(width=...)`, so
-plain-text output and terminal output can share the same formatted structure.
+Width is chosen when Rich renders the result through a `Console`, not when you
+call `pformat()`.
 
-## Notes For Extenders
+## Supported Integrations
 
-The package exports `DescribeContext` and the shared `describe` registry because
-the describe stage is extensible. Those names are lower-level than the formatting
-functions, and the spec-building helpers currently live in internal modules
-rather than the top-level package.
+- Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
+- Repr-style truncation for deep, wide, or long values
+- `attrs` and `fieldz` objects
+- Objects with `__rich_repr__`
+- Shared and cyclic references
+- Custom handlers via `register_type()`, `register_func()`, `register_lazy()`,
+  or `__pretty__(self, ctx)`
 
-See [API Reference](reference/README.md) for signatures and docstrings.
+Repeated references are turned into tagged references instead of expanding the
+same object forever. The first occurrence is annotated, and later occurrences
+render as `<Type @ hexid>` references.
+
+## Extending The Formatter
+
+Use `register_type()` when you want a handler for one concrete class:
+
+```python
+from rich.text import Text
+
+from liblaf.pretty import pformat, register_type
+
+
+class Point:
+    def __init__(self, x: int, y: int) -> None:
+        self.x = x
+        self.y = y
+
+
+@register_type(Point)
+def _pretty_point(obj: Point, ctx):
+    return ctx.container(
+        obj=obj,
+        begin=Text("(", "repr.tag_start"),
+        children=[ctx.name_value("x", obj.x), ctx.name_value("y", obj.y)],
+        end=Text(")", "repr.tag_end"),
+    )
+
+
+print(pformat(Point(1, 2)).to_plain(), end="")
+```
+
+```text
+Point(x=1, y=2)
+```
+
+`ctx.container()` adds the type name for referencable objects, so custom
+handlers usually supply only punctuation such as `(` and `)`.
+
+For a deeper guide, see [Custom Formatters](guides/custom-formatters.md).
+
+## Pipeline
+
+The public API is small:
+
+- `pformat()` builds a lowered Rich renderable.
+- `pprint()` and `pp()` print that renderable through a `Console`.
+- `PrettyContext` and the registration helpers power custom integrations.
+
+The lower-level `stages.wrapped`, `stages.traced`, and `stages.lowered` modules
+are part of the internal pipeline and are mostly useful when you are extending
+the formatter itself.
+
+See the [API reference](reference/liblaf/pretty/README.md) for signatures and
+source-backed docstrings.

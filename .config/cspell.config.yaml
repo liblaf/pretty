@@ -17,33 +17,40 @@ words:
   - arithmatex
   - cuda
   - cupy
-  - direnv
   - fieldz
-  - getattr
+  - grimp
+  - hexid
   - hynek
   - inlinehilite
   - liblaf
+  - linenums
+  - lucide
   - mkdocs
   - mkdocstrings
-  - numprocesses
   - numpy
-  - pdoc
+  - pformat
+  - pipx
   - pycache
   - pydantic
   - pydocstyle
+  - pygments
   - pylint
   - pymdownx
   - pypa
   - pypi
   - pyplot
   - pyproject
-  - pyrightconfig
   - pytest
   - pyvista
+  - repr
+  - reprlib
+  - rumdl
   - sdist
+  - taiki
   - tombi
   - trimesh
-  - uuidgen
+  - twemoji
   - venv
   - virtualenv
-  - xdist
+  - wadler
+  - zensical
