@@ -1,4 +1,3 @@
-import contextlib
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -69,6 +68,7 @@ def _describe_rich_repr(obj: Any, ctx: PrettyContext) -> WrappedContainer | None
 def _safe_equal(a: Any, b: Any) -> bool:
     if a is b:
         return True
-    with contextlib.suppress(Exception):
+    try:
         return a == b
-    return False
+    except Exception:  # noqa: BLE001
+        return False

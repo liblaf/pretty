@@ -17,7 +17,7 @@ class TracedLeaf(TracedObject):
 
     @classmethod
     def ellipsis(cls) -> Self:
-        return cls(ELLIPSIS, has_ref=False, identifier=ObjectIdentifier.missing())
+        return cls(ELLIPSIS, has_ref=False, identifier=ObjectIdentifier.from_obj(...))
 
     @classmethod
     def literal(cls, text: Text) -> Self:

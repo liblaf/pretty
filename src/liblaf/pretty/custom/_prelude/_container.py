@@ -11,9 +11,9 @@ from liblaf.pretty.stages.wrapped import WrappedContainer, WrappedItem
 @registry.register_type(dict)
 def _pretty_dict(obj: dict[Any, Any], ctx: PrettyContext) -> WrappedContainer:
     children: list[WrappedItem] = [
-        ctx.key_value(key, value) for key, value in ctx.truncate_dict(obj.items())
+        ctx.key_value(key, value)
+        for key, value in ctx.truncate_dict(ctx.possibly_sorted(obj.items()))
     ]
-    children: list[WrappedItem] = ctx.add_separators(children)
     return ctx.container(
         obj=obj,
         begin=Text("{", "repr.tag_start"),
@@ -25,9 +25,8 @@ def _pretty_dict(obj: dict[Any, Any], ctx: PrettyContext) -> WrappedContainer:
 @registry.register_type(frozenset)
 def _pretty_frozenset(obj: frozenset[Any], ctx: PrettyContext) -> WrappedContainer:
     children: list[WrappedItem] = [
-        ctx.positional(item) for item in ctx.truncate_list(obj)
+        ctx.positional(item) for item in ctx.truncate_list(ctx.possibly_sorted(obj))
     ]
-    children: list[WrappedItem] = ctx.add_separators(children)
     return ctx.container(
         obj=obj,
         begin=Text("({", "repr.tag_start"),
@@ -45,7 +44,6 @@ def _pretty_list(obj: list[Any], ctx: PrettyContext) -> WrappedContainer:
     children: list[WrappedItem] = [
         ctx.positional(item) for item in ctx.truncate_list(obj)
     ]
-    children: list[WrappedItem] = ctx.add_separators(children)
     return ctx.container(
         obj=obj,
         begin=Text("[", "repr.tag_start"),
@@ -57,9 +55,8 @@ def _pretty_list(obj: list[Any], ctx: PrettyContext) -> WrappedContainer:
 @registry.register_type(set)
 def _pretty_set(obj: set[Any], ctx: PrettyContext) -> WrappedContainer:
     children: list[WrappedItem] = [
-        ctx.positional(item) for item in ctx.truncate_list(obj)
+        ctx.positional(item) for item in ctx.truncate_list(ctx.possibly_sorted(obj))
     ]
-    children: list[WrappedItem] = ctx.add_separators(children)
     return ctx.container(
         obj=obj,
         begin=Text("{", "repr.tag_start"),
@@ -86,4 +83,6 @@ def _pretty_tuple(obj: tuple[Any, ...], ctx: PrettyContext) -> WrappedContainer:
         begin=Text("(", "repr.tag_start"),
         children=children,
         end=Text(")", "repr.tag_end"),
+        add_separators=False,
+        referencable=False,
     )

@@ -1,7 +1,7 @@
 import functools
 import reprlib
 from collections import deque
-from collections.abc import Generator, Iterable
+from collections.abc import Callable, Generator, Iterable
 from typing import Any
 
 import attrs
@@ -47,15 +47,6 @@ class PrettyContext(TraceContext):
             indent=self.options.indent.plain,
         )
         return arepr
-
-    def add_separators(self, items: Iterable[WrappedItem]) -> list[WrappedItem]:
-        items: list[WrappedItem] = list(items)
-        for i, item in enumerate(items):
-            if i > 0:
-                item.prefix = SPACE
-            if i < len(items) - 1:
-                item.suffix = COMMA
-        return items
 
     def ellipsis_item(self) -> WrappedItem:
         return WrappedPositionalItem.ellipsis()
@@ -133,11 +124,14 @@ class PrettyContext(TraceContext):
         end: Text,
         indent: Text | None = None,
         *,
+        add_separators: bool = True,
         empty: Text | None = None,
         referencable: bool = True,
     ) -> WrappedContainer:
         if indent is None:
             indent: Text = self.options.indent
+        if add_separators:
+            children: list[WrappedItem] = self.add_separators(children)
         kwargs: dict[str, Any] = {}
         if empty is not None:
             kwargs["empty"] = empty
@@ -155,3 +149,27 @@ class PrettyContext(TraceContext):
         return WrappedLeaf(
             value=text, identifier=self.identifier(obj), referencable=referencable
         )
+
+    # --------------------------------- utils -------------------------------- #
+
+    @staticmethod
+    def add_separators(items: Iterable[WrappedItem]) -> list[WrappedItem]:
+        items: list[WrappedItem] = list(items)
+        for i, item in enumerate(items):
+            if i > 0:
+                item.prefix = SPACE
+            if i < len(items) - 1:
+                item.suffix = COMMA
+        return items
+
+    @staticmethod
+    def possibly_sorted[T](
+        items: Iterable[T],
+        *,
+        key: Callable[[T], Any] | None = None,
+        reverse: bool = False,
+    ) -> Iterable[T]:
+        try:
+            return sorted(items, key=key, reverse=reverse)
+        except Exception:  # noqa: BLE001
+            return items
