@@ -15,8 +15,16 @@ class PrettyOverrides(TypedDict, total=False):
     max_string: int
     max_long: int
     max_other: int
-    indent: Text | str
+    indent: str | Text
     hide_defaults: bool
+
+
+def _as_text(value: str | Text) -> Text:
+    if isinstance(value, Text):
+        return value
+    if "\x1b" in value:
+        return Text.from_ansi(value)
+    return Text.from_markup(value)
 
 
 @attrs.frozen
@@ -28,16 +36,8 @@ class PrettyOptions:
     max_string: int
     max_long: int
     max_other: int
-    indent: Text
+    indent: Text = attrs.field(converter=_as_text)
     hide_defaults: bool
-
-
-def _as_text(value: str | Text) -> Text:
-    if isinstance(value, Text):
-        return value
-    if "\x1b" in value:
-        return Text.from_ansi(value)
-    return Text.from_markup(value)
 
 
 def field_text(*, default: Text) -> conf.Field[Text]:
