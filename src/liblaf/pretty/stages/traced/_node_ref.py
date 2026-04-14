@@ -16,6 +16,7 @@ class TracedRef(TracedNode):
 
     @override
     def lower(self, ctx: LowerContext) -> LoweredLeaf:
+        assert self.identifier.cls is not None
         typename: str = ctx.get_ref_typename(self.identifier.cls)
         return LoweredLeaf(
             Text.assemble(

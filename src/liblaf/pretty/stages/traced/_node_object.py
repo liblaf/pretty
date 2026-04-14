@@ -16,5 +16,6 @@ class TracedObject(TracedNode):
     def make_annotation(self, ctx: LowerContext) -> Text:
         if not self.has_ref:
             return EMPTY
+        assert self.identifier.cls is not None
         typename: str = ctx.get_ref_typename(self.identifier.cls)
         return Text(f"  # <{typename} @ {self.identifier.id_:x}>", "dim")

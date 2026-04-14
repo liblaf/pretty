@@ -11,9 +11,11 @@ class WrappedObject(WrappedNode):
     referencable: bool = attrs.field(default=True, kw_only=True)
 
     def visit(self, ctx: TraceContext) -> TracedRef | None:
-        ctx.types.add(self.identifier.cls)
+        if self.identifier.cls is not None:
+            ctx.types.add(self.identifier.cls)
         if (
             self.referencable
+            and self.identifier.id_ is not None
             and (anchor := ctx.trace_cache.get(self.identifier.id_)) is not None
         ):
             anchor.has_ref = True

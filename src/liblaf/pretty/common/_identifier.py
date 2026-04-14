@@ -1,12 +1,12 @@
-from typing import Self, cast
+from typing import Self
 
 import attrs
 
 
 @attrs.frozen
 class ObjectIdentifier:
-    cls: type
-    id_: int = attrs.field(alias="id")
+    cls: type | None
+    id_: int | None = attrs.field(alias="id")
 
     @classmethod
     def from_obj(cls, obj: object) -> Self:
@@ -14,4 +14,4 @@ class ObjectIdentifier:
 
     @classmethod
     def missing(cls) -> Self:
-        return cls(cls=cast("type", None), id=0)
+        return cls(cls=None, id=None)

@@ -27,6 +27,7 @@ class TracedContainer(TracedObject):
     @override
     def lower(self, ctx: LowerContext) -> LoweredContainer | LoweredLeaf:
         annotation: Text = self.make_annotation(ctx)
+        assert self.identifier.cls is not None
         typename: str = ctx.get_tag_typename(self.identifier.cls)
         if not self.children:
             return LoweredLeaf(
