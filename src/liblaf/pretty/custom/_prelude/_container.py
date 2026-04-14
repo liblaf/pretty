@@ -49,6 +49,7 @@ def _pretty_list(obj: list[Any], ctx: PrettyContext) -> WrappedContainer:
         begin=Text("[", "repr.tag_start"),
         children=children,
         end=Text("]", "repr.tag_end"),
+        referencable=False,
     )
 
 
