@@ -1,4 +1,6 @@
 
+"""Object wrappers and trace helpers used before reference analysis."""
+
 from lazy_loader import attach_stub
 
 __getattr__, __dir__, __all__ = attach_stub(__name__, __file__)

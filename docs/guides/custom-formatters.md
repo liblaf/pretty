@@ -41,6 +41,9 @@ Point(x=1, y=2)
 `ctx.container()` prefixes the object's type name automatically for
 referencable objects, so `begin` and `end` usually only need delimiters.
 
+`register_type()` uses `functools.singledispatch`, so subclasses also match
+unless you register something more specific.
+
 ## Owning The Type
 
 If you control the class, `__pretty__(self, ctx)` keeps the formatting logic
@@ -67,6 +70,8 @@ class Point:
 The hook receives only `ctx`. Older `ctx, depth` examples are stale for this
 package.
 
+If `__pretty__` returns `None`, the registry keeps looking for other handlers.
+
 ## Picking The Right Helper
 
 `PrettyContext` exposes a few helpers that are enough for most handlers:
@@ -85,7 +90,10 @@ the Rich rendering pipeline and are not plain strings.
 
 `register_func()` is useful when the handler should inspect an object and decide
 at runtime whether it applies. Return `None` to let the next handler try.
+Functional handlers run after type-based handlers and are checked in reverse
+registration order, so the most recently registered handler wins.
 
 `register_lazy(module, name)` defers registration until that module has been
-imported. This is a good fit for optional dependencies such as array or tensor
-types that should not be imported just for pretty-printing.
+imported. It does not import the module for you. This is a good fit for optional
+dependencies such as array or tensor types that should not be imported just for
+pretty-printing.

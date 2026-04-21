@@ -1,3 +1,5 @@
+"""Fallback repr-based formatting helpers."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -16,6 +18,7 @@ _HIGHLIGHTER: ReprHighlighter = ReprHighlighter()
 def pretty_repr(
     obj: Any, ctx: PrettyContext, *, referencable: bool = True
 ) -> WrappedLeaf:
+    """Format `obj` with `reprlib` and Rich's repr highlighter."""
     raw: str = ctx.arepr.repr1(obj, ctx.arepr.maxlevel - ctx.depth)
     text: Text = _HIGHLIGHTER(raw)
     return ctx.leaf(obj, text, referencable=referencable)

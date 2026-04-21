@@ -47,10 +47,13 @@ The public formatting functions accept these keyword overrides:
 | `max_long` | `40` | Maximum integer repr length before truncation. |
 | `max_other` | `30` | Maximum repr length for other scalar values. |
 | `indent` | `"|   "` | Indentation used when layouts break across lines. |
-| `hide_defaults` | `True` | Hide default-valued fields from `attrs` and `__rich_repr__` output. |
+| `hide_defaults` | `True` | Hide default-valued fields from `fieldz`-backed and `__rich_repr__` output. |
 
 Each value can also come from `PRETTY_*` environment variables. For example,
 `PRETTY_MAX_LIST=1` has the same effect as `pformat(obj, max_list=1)`.
+
+`indent` accepts either a `str` or `rich.text.Text`. String values are parsed as
+Rich markup, and ANSI escapes are preserved.
 
 Width is chosen when Rich renders the result through a `Console`, not when you
 call `pformat()`.
@@ -59,7 +62,7 @@ call `pformat()`.
 
 - Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
 - Repr-style truncation for deep, wide, or long values
-- `attrs` and `fieldz` objects
+- Field-based models supported by `fieldz`, including `attrs` models
 - Objects with `__rich_repr__`
 - Shared and cyclic references
 - Custom handlers via `register_type()`, `register_func()`, `register_lazy()`,
@@ -104,6 +107,9 @@ Point(x=1, y=2)
 
 `ctx.container()` adds the type name for referencable objects, so custom
 handlers usually supply only punctuation such as `(` and `)`.
+
+A `__pretty__(self, ctx)` method is checked before the registry. Returning
+`None` lets normal registered handlers keep running.
 
 For a deeper guide, see [Custom Formatters](guides/custom-formatters.md).
 

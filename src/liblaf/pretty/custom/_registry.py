@@ -1,4 +1,6 @@
 
+"""Registration machinery for custom pretty-printers."""
+
 from __future__ import annotations
 
 import functools
@@ -22,6 +24,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PrettyHandler[T](Protocol):
+    """Protocol implemented by pretty-printer callbacks."""
 
     def __call__(self, obj: T, ctx: PrettyContext, /) -> WrappedNode | None: ...
 
@@ -42,6 +45,12 @@ def _default_type_dispatcher() -> functools._SingleDispatchCallable[WrappedNode 
 
 @attrs.define
 class PrettyRegistry:
+    """Ordered registry of custom pretty-printer handlers.
+
+    Resolution prefers an object's `__pretty__` method, then registered type-based
+    handlers, then registered functional handlers, and finally falls back to
+    repr-based formatting.
+    """
 
     handlers: list[PrettyHandler[Any]] = attrs.field(factory=list)
     lazy_handlers: dict[_LazyType, PrettyHandler[Any]] = attrs.field(factory=dict)
@@ -50,6 +59,7 @@ class PrettyRegistry:
     )
 
     def __call__(self, obj: Any, ctx: PrettyContext) -> WrappedNode:
+        """Wrap `obj` with the first matching registered handler."""
         if (pretty := getattr(obj, "__pretty__", None)) is not None and (
             wrapped := pretty(ctx)
         ) is not None:
@@ -63,6 +73,11 @@ class PrettyRegistry:
         return pretty_repr(obj, ctx)
 
     def register_func[F: PrettyHandler[Any]](self, func: F) -> F:
+        """Register a structural handler.
+
+        Functional handlers run after type-based handlers. Later registrations win
+        because the registry checks them in reverse order.
+        """
         self.handlers.append(func)
         return func
 
@@ -77,6 +92,11 @@ class PrettyRegistry:
     def register_lazy[F: PrettyHandler[Any]](
         self, module: str, name: str, func: F | None = None
     ) -> Callable[..., Any]:
+        """Register a handler for a type that may come from an optional dependency.
+
+        The registry does not import `module` for you. Instead, the handler becomes
+        active once that module is already present in `sys.modules`.
+        """
         if func is None:
             return functools.partial(self.register_lazy, module, name)
         self.lazy_handlers[_LazyType(module, name)] = func
@@ -91,11 +111,13 @@ class PrettyRegistry:
     def register_type[F: PrettyHandler[Any]](
         self, cls: type, func: F | None = None
     ) -> Callable[..., Any]:
+        """Register a handler for `cls` and its subclasses."""
         if func is None:
             return functools.partial(self.register_type, cls)
         return self.type_dispatcher.register(cls, func)
 
     def resolve_lazy(self) -> None:
+        """Resolve pending lazy registrations against already imported modules."""
         for (module_name, cls_name), handler in list(self.lazy_handlers.items()):
             module: types.ModuleType | None = sys.modules.get(module_name)
             if module is None:

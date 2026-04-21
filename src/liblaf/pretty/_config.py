@@ -1,4 +1,6 @@
 
+"""Configuration types and environment-backed defaults for `liblaf.pretty`."""
+
 from typing import ClassVar, TypedDict
 
 import attrs
@@ -9,6 +11,20 @@ from liblaf.pretty.literals import INDENT
 
 
 class PrettyOverrides(TypedDict, total=False):
+    """Keyword overrides accepted by the public formatting functions.
+
+    Attributes:
+        max_level: Maximum nesting depth before values collapse to `...`.
+        max_list: Maximum visible items for list-like containers.
+        max_array: Maximum elements forwarded to repr-style array handlers.
+        max_dict: Maximum visible key-value pairs for mappings.
+        max_string: Maximum string repr length before truncation.
+        max_long: Maximum integer repr length before truncation.
+        max_other: Maximum repr length for other scalar values.
+        indent: Indentation used when layouts wrap across lines.
+        hide_defaults: Hide default-valued fields from `fieldz` and `__rich_repr__`
+            output.
+    """
 
     max_level: int
     max_list: int
@@ -22,6 +38,7 @@ class PrettyOverrides(TypedDict, total=False):
 
 
 def _as_text(value: str | Text) -> Text:
+    """Normalize string-like indentation into Rich text."""
     if isinstance(value, Text):
         return value
     if "\x1b" in value:
@@ -31,6 +48,23 @@ def _as_text(value: str | Text) -> Text:
 
 @attrs.frozen
 class PrettyOptions:
+    """Resolved options for a single formatting pass.
+
+    These values are usually created from [`config`][liblaf.pretty.config] plus
+    per-call [`PrettyOverrides`][liblaf.pretty.PrettyOverrides].
+
+    Attributes:
+        max_level: Maximum nesting depth before values collapse to `...`.
+        max_list: Maximum visible items for list-like containers.
+        max_array: Maximum elements forwarded to repr-style array handlers.
+        max_dict: Maximum visible key-value pairs for mappings.
+        max_string: Maximum string repr length before truncation.
+        max_long: Maximum integer repr length before truncation.
+        max_other: Maximum repr length for other scalar values.
+        indent: Indentation used when layouts wrap across lines.
+        hide_defaults: Hide default-valued fields from `fieldz` and `__rich_repr__`
+            output.
+    """
 
     max_level: int
     max_list: int
@@ -44,10 +78,16 @@ class PrettyOptions:
 
 
 def field_text(*, default: Text) -> conf.Field[Text]:
+    """Create a config field that accepts markup, ANSI, or Rich text."""
     return conf.field(default=default, converter=_as_text)
 
 
 class PrettyConfig(conf.BaseConfig):
+    """Environment-backed defaults for the pretty printer.
+
+    Values are loaded from `PRETTY_*` variables and can be overridden per call with
+    [`pformat`][liblaf.pretty.pformat] or [`pprint`][liblaf.pretty.pprint].
+    """
 
     env_prefix: ClassVar[str] = "PRETTY_"
 
@@ -62,6 +102,7 @@ class PrettyConfig(conf.BaseConfig):
     hide_defaults: conf.Field[bool] = conf.field_bool(default=True)
 
     def dump(self) -> PrettyOptions:
+        """Materialize the current configuration as [`PrettyOptions`][liblaf.pretty.PrettyOptions]."""
         return PrettyOptions(**self.to_dict())
 
 

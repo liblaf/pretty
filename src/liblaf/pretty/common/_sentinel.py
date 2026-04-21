@@ -1,4 +1,6 @@
 
+"""Internal sentinel values used during truncation."""
+
 import enum
 from typing import Any
 
@@ -9,3 +11,4 @@ class _TruncatedType(enum.Enum):
 
 
 TRUNCATED: Any = _TruncatedType.TRUNCATED
+"""Sentinel inserted when a container is truncated by the active limits."""

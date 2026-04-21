@@ -1,4 +1,6 @@
 
+"""Customization hooks for teaching `liblaf.pretty` new formatting rules."""
+
 from ._context import PrettyContext
 
 # register prelude handlers
