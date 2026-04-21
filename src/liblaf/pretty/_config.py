@@ -1,4 +1,3 @@
-"""Environment-backed formatting options."""
 
 from typing import ClassVar, TypedDict
 
@@ -10,7 +9,6 @@ from liblaf.pretty.literals import INDENT
 
 
 class PrettyOverrides(TypedDict, total=False):
-    """Keyword overrides accepted by the public formatting helpers."""
 
     max_level: int
     max_list: int
@@ -33,7 +31,6 @@ def _as_text(value: str | Text) -> Text:
 
 @attrs.frozen
 class PrettyOptions:
-    """Resolved formatting options after config and call-time overrides merge."""
 
     max_level: int
     max_list: int
@@ -51,7 +48,6 @@ def field_text(*, default: Text) -> conf.Field[Text]:
 
 
 class PrettyConfig(conf.BaseConfig):
-    """Load default formatting options from `PRETTY_*` environment variables."""
 
     env_prefix: ClassVar[str] = "PRETTY_"
 
@@ -66,7 +62,6 @@ class PrettyConfig(conf.BaseConfig):
     hide_defaults: conf.Field[bool] = conf.field_bool(default=True)
 
     def dump(self) -> PrettyOptions:
-        """Snapshot the current configuration as [`PrettyOptions`][]."""
         return PrettyOptions(**self.to_dict())
 
 

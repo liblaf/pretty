@@ -1,4 +1,3 @@
-"""Lazy-loaded lowered stage that renders through Rich."""
 
 from lazy_loader import attach_stub
 

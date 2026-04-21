@@ -1,4 +1,3 @@
-"""Public entry point for the wrapped, traced, and lowered stages."""
 
 from lazy_loader import attach_stub
 

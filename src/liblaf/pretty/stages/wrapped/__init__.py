@@ -1,4 +1,3 @@
-"""Lazy-loaded wrapped-node stage of the formatting pipeline."""
 
 from lazy_loader import attach_stub
 

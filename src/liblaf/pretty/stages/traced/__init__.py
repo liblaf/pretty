@@ -1,4 +1,3 @@
-"""Lazy-loaded traced-node stage of the formatting pipeline."""
 
 from lazy_loader import attach_stub
 
