@@ -1,4 +1,3 @@
-
 """Internal sentinel values used during truncation."""
 
 import enum
@@ -6,7 +5,6 @@ from typing import Any
 
 
 class _TruncatedType(enum.Enum):
-
     TRUNCATED = enum.auto()
 
 

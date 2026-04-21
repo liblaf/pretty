@@ -1,4 +1,3 @@
-
 """Registration machinery for custom pretty-printers."""
 
 from __future__ import annotations

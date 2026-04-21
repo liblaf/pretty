@@ -7,6 +7,17 @@
 - Use `register_func()` for structural handlers that may or may not apply.
 - Use `register_lazy()` when the target type lives in an optional dependency.
 
+## Choose A Hook
+
+Use the smallest hook that matches the problem:
+
+- `__pretty__()` keeps the formatting logic next to the model you own.
+- `register_type()` is the normal choice for a concrete third-party class.
+- `register_func()` is useful when you need structural matching instead of type
+  matching.
+- `register_lazy()` keeps optional integrations cheap because it waits for the
+  dependency to be imported elsewhere.
+
 ## A Concrete Type
 
 ```python
@@ -72,7 +83,7 @@ package.
 
 If `__pretty__` returns `None`, the registry keeps looking for other handlers.
 
-## Picking The Right Helper
+## Building Output With `PrettyContext`
 
 `PrettyContext` exposes a few helpers that are enough for most handlers:
 
@@ -83,17 +94,37 @@ If `__pretty__` returns `None`, the registry keeps looking for other handlers.
 - `ctx.container(obj=..., begin=..., children=..., end=...)` builds repr-like
   tagged containers.
 
-Use `Text` for `begin`, `end`, and custom leaf output. Those values flow through
-the Rich rendering pipeline and are not plain strings.
+Use `Text` for `begin`, `end`, and custom leaf output. Those values flow
+through the Rich rendering pipeline and are not plain strings.
 
-## Structural And Lazy Registration
+## Structural Registration
 
 `register_func()` is useful when the handler should inspect an object and decide
 at runtime whether it applies. Return `None` to let the next handler try.
 Functional handlers run after type-based handlers and are checked in reverse
 registration order, so the most recently registered handler wins.
 
-`register_lazy(module, name)` defers registration until that module has been
-imported. It does not import the module for you. This is a good fit for optional
-dependencies such as array or tensor types that should not be imported just for
-pretty-printing.
+## Lazy Registration
+
+`register_lazy(module, name)` defers registration until that module has already
+been imported. It does not import the module for you. This is a good fit for
+optional dependencies such as array or tensor types that should not be imported
+just for pretty-printing.
+
+```python
+from rich.text import Text
+
+from liblaf.pretty import register_lazy
+
+
+@register_lazy("numpy", "ndarray")
+def _pretty_ndarray(obj, ctx):
+    return ctx.leaf(
+        obj,
+        Text(f"ndarray(shape={obj.shape!r}, dtype={obj.dtype!s})", "repr.tag_name"),
+        referencable=False,
+    )
+```
+
+Once `numpy` is present in `sys.modules`, the handler is resolved and cached for
+future formatting calls.

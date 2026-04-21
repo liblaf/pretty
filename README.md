@@ -1,8 +1,8 @@
 # Pretty
 
-`liblaf.pretty` formats Python objects as Rich renderables. It keeps repr-like
-syntax, decides where to break lines at render time, truncates large values,
-and annotates repeated references instead of recursing forever.
+`liblaf.pretty` pretty-prints Python objects as Rich renderables. It keeps
+repr-like syntax, chooses line breaks at render time, truncates large values,
+and exposes a small extension surface for custom formatting rules.
 
 ## Install
 
@@ -15,7 +15,7 @@ pip install liblaf-pretty
 ## Quick Start
 
 Use `pformat()` when you want a Rich renderable that can be printed directly or
-captured as deterministic plain text:
+converted to deterministic plain text for logs, tests, and snapshots:
 
 ```python
 from rich.console import Console
@@ -37,7 +37,8 @@ print(rendered.to_plain(console), end="")
 }
 ```
 
-If you already have a Rich console, use `pprint()` or its alias `pp()`:
+If you already have a Rich console, `pprint()` and `pp()` format and print in
+one step:
 
 ```python
 from liblaf.pretty import pprint
@@ -45,19 +46,19 @@ from liblaf.pretty import pprint
 pprint({"alpha": [1, 2, 3]}, max_list=3)
 ```
 
-## What It Handles
+## Why `liblaf.pretty`
 
-- Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- Repr-style truncation for deep, wide, or long values
-- `attrs` and `fieldz` objects, with default-valued fields hidden by default
-- Objects with `__rich_repr__`
-- Shared and cyclic references
-- Custom handlers via `register_type()`, `register_func()`, `register_lazy()`,
-  or `__pretty__(self, ctx)`
+- Width-aware layout is chosen by Rich when the renderable is printed.
+- Deep, wide, or long values are truncated with repr-style ellipses.
+- `attrs`, `fieldz`, and `__rich_repr__` objects work out of the box.
+- Shared references are annotated for referencable containers and custom
+  objects, while cyclic values still render safely.
+- Custom hooks are available through `__pretty__()`, `register_type()`,
+  `register_func()`, and `register_lazy()`.
 
 ## Configuration
 
-The public formatters accept keyword overrides for:
+The public formatters accept per-call overrides for:
 
 - `max_level`, `max_list`, `max_array`, `max_dict`
 - `max_string`, `max_long`, `max_other`
@@ -69,6 +70,9 @@ Those overrides sit on top of environment-backed defaults loaded from
 through a `Console`.
 
 ## Custom Formatting
+
+Use `register_type()` when you want one concrete class to render in a specific
+way:
 
 ```python
 from rich.text import Text
@@ -100,7 +104,15 @@ Point(x=1, y=2)
 ```
 
 `ctx.container()` adds the type name for referencable objects, so custom
-handlers usually provide only the delimiters.
+handlers usually only provide punctuation and child items.
 
 The longer guide lives in [`docs/README.md`](docs/README.md), with a focused
 extension guide at [`docs/guides/custom-formatters.md`](docs/guides/custom-formatters.md).
+
+## Development
+
+```bash
+mise run lint
+mise run docs:build
+nox
+```

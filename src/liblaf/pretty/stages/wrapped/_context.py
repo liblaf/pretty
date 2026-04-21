@@ -1,4 +1,3 @@
-
 import attrs
 
 from liblaf.pretty._config import PrettyOptions, config
@@ -9,7 +8,6 @@ from ._typename import disambiguate_typenames
 
 @attrs.define
 class TraceContext:
-
     depth: int = 0
     options: PrettyOptions = attrs.field(factory=config.dump)
     trace_cache: dict[int, TracedObject] = attrs.field(factory=dict)

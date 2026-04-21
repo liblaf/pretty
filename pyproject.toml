@@ -3,7 +3,7 @@
 
 [project]
 name = "liblaf-pretty"
-description = "Pretty-print Python objects as repr-like, width-aware Rich renderables."
+description = "Pretty-print Python objects as repr-like, width-aware Rich renderables with extensible formatting hooks."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
@@ -54,7 +54,7 @@ docs = [
   "griffe-pydantic>=1",
   "griffe-warnings-deprecated>=1",
   "mkdocstrings[python]>=1",
-  "zensical>=0.0.30",
+  "zensical>=0.0.30"
 ]
 lint = ["import-linter[ui]>=2", "ruff>=0.15"]
 nox = ["liblaf-nox-recipes>=0.1", "nox>=2026", "nox-uv>=0.7"]

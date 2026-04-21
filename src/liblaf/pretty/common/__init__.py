@@ -1,4 +1,3 @@
-
 """Shared sentinels and identity helpers used by the formatting pipeline."""
 
 from lazy_loader import attach_stub

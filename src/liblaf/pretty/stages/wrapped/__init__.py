@@ -1,4 +1,3 @@
-
 """Object wrappers and trace helpers used before reference analysis."""
 
 from lazy_loader import attach_stub

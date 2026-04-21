@@ -1,4 +1,3 @@
-
 """Context helpers exposed to custom pretty-printers."""
 
 import functools

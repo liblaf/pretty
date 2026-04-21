@@ -1,4 +1,3 @@
-
 """Configuration types and environment-backed defaults for `liblaf.pretty`."""
 
 from typing import ClassVar, TypedDict

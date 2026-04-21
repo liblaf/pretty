@@ -1,4 +1,3 @@
-
 """Helpers for tracking object identity across formatting stages."""
 
 from typing import Self

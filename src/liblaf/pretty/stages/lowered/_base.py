@@ -1,4 +1,3 @@
-
 import abc
 from collections.abc import Iterable
 
@@ -11,7 +10,6 @@ from ._layout import Layout, choose_layout
 
 @attrs.frozen
 class Lowered(abc.ABC):
-
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:

@@ -1,8 +1,8 @@
 # Pretty
 
-`liblaf.pretty` gives you repr-like output that stays readable when values get
-large, nested, shared, or cyclic. The formatter builds a Rich renderable first,
-then lets Rich decide the final layout for the active console width.
+`liblaf.pretty` builds repr-like Rich renderables for Python objects. It is a
+good fit for interactive debugging, logs, doctests, and snapshots where you
+want readable output without giving up Rich styling or width-aware wrapping.
 
 ## Start With `pformat()`
 
@@ -47,7 +47,7 @@ The public formatting functions accept these keyword overrides:
 | `max_long` | `40` | Maximum integer repr length before truncation. |
 | `max_other` | `30` | Maximum repr length for other scalar values. |
 | `indent` | `"|   "` | Indentation used when layouts break across lines. |
-| `hide_defaults` | `True` | Hide default-valued fields from `fieldz`-backed and `__rich_repr__` output. |
+| `hide_defaults` | `True` | Hide default-valued fields from `fieldz` and `__rich_repr__` output. |
 
 Each value can also come from `PRETTY_*` environment variables. For example,
 `PRETTY_MAX_LIST=1` has the same effect as `pformat(obj, max_list=1)`.
@@ -58,23 +58,28 @@ Rich markup, and ANSI escapes are preserved.
 Width is chosen when Rich renders the result through a `Console`, not when you
 call `pformat()`.
 
-## Supported Integrations
+## Reference Tracking
 
-- Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- Repr-style truncation for deep, wide, or long values
-- Field-based models supported by `fieldz`, including `attrs` models
-- Objects with `__rich_repr__`
-- Shared and cyclic references
-- Custom handlers via `register_type()`, `register_func()`, `register_lazy()`,
-  or `__pretty__(self, ctx)`
+The formatter avoids infinite recursion and can annotate repeated references for
+referencable objects such as mappings, sets, frozensets, and custom containers.
+The first occurrence is annotated, and later occurrences render as
+`<Type @ hexid>` references.
 
-Repeated references are turned into tagged references instead of expanding the
-same object forever. The first occurrence is annotated, and later occurrences
-render as `<Type @ hexid>` references.
+Scalar values and sequence literals still render safely, but they may repeat
+their value instead of emitting a shared-reference marker.
 
 ## Extending The Formatter
 
-Use `register_type()` when you want a handler for one concrete class:
+The extension surface is intentionally small:
+
+- Implement `__pretty__(self, ctx)` when you own the class.
+- Use `register_type()` for one concrete type and its subclasses.
+- Use `register_func()` for structural handlers that decide at runtime whether
+  they apply.
+- Use `register_lazy()` when the target type lives in an optional dependency and
+  should only activate after that module is already imported.
+
+Here is a `register_type()` example:
 
 ```python
 from rich.text import Text
@@ -106,10 +111,7 @@ Point(x=1, y=2)
 ```
 
 `ctx.container()` adds the type name for referencable objects, so custom
-handlers usually supply only punctuation such as `(` and `)`.
-
-A `__pretty__(self, ctx)` method is checked before the registry. Returning
-`None` lets normal registered handlers keep running.
+handlers usually provide only punctuation and child items.
 
 For a deeper guide, see [Custom Formatters](guides/custom-formatters.md).
 

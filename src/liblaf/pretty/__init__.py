@@ -1,4 +1,3 @@
-
 """Public entry points for `liblaf.pretty`."""
 
 from lazy_loader import attach_stub

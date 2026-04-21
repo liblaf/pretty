@@ -1,10 +1,8 @@
-
 import attrs
 
 
 @attrs.frozen
 class LowerContext:
-
     typenames: dict[type, str]
 
     def get_ref_typename(self, cls: type) -> str:
