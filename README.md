@@ -1,14 +1,38 @@
-# Pretty
+<div align="center" markdown>
 
-`liblaf.pretty` pretty-prints Python objects as repr-like, width-aware Rich
-renderables.
+![Pretty](https://socialify.git.ci/liblaf/pretty/image?description=1&forks=1&issues=1&language=1&name=1&owner=1&pattern=Transparent&pulls=1&stargazers=1&theme=Auto)
 
-[Guide](docs/README.md) ·
-[Custom Formatters](docs/guides/custom-formatters.md) ·
-[API Reference](https://liblaf.github.io/pretty/) ·
-[Changelog](CHANGELOG.md)
+**[Explore the docs »](https://liblaf.github.io/pretty/)**
 
-## Install
+[![Docs](https://github.com/liblaf/pretty/actions/workflows/python-docs.yaml/badge.svg)](https://github.com/liblaf/pretty/actions/workflows/python-docs.yaml)
+[![Tests](https://github.com/liblaf/pretty/actions/workflows/python-test.yaml/badge.svg)](https://github.com/liblaf/pretty/actions/workflows/python-test.yaml)
+[![Benchmarks](https://github.com/liblaf/pretty/actions/workflows/python-bench.yaml/badge.svg)](https://github.com/liblaf/pretty/actions/workflows/python-bench.yaml)
+[![PyPI Version](https://img.shields.io/pypi/v/liblaf-pretty?logo=pypi&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/liblaf-pretty?logo=python&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![PyPI - Types](https://img.shields.io/pypi/types/liblaf-pretty?logo=python&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
+
+[API Reference](https://liblaf.github.io/pretty/reference/liblaf/pretty/) · [Changelog](https://github.com/liblaf/pretty/blob/main/CHANGELOG.md) · [Report Bug](https://github.com/liblaf/pretty/issues)
+
+![Rule](https://cdn.jsdelivr.net/gh/andreasbm/readme/assets/lines/rainbow.png)
+
+</div>
+
+## ✨ Features
+
+- Width-aware pretty-printing that stays inside Rich's render pipeline instead
+  of flattening everything into a string too early.
+- Built-in handling for common containers, `fieldz`-compatible models, and
+  objects with `__rich_repr__`.
+- Shared-reference and cycle tracking for referencable objects such as
+  mappings, sets, frozensets, and custom containers.
+- A small customization surface through `__pretty__()`, `register_type()`,
+  `register_func()`, and `register_lazy()`.
+- Environment-backed defaults through `PRETTY_*`, with per-call overrides for
+  logs, snapshots, tests, and interactive debugging.
+
+## 📦 Installation
 
 ```bash
 uv add liblaf-pretty
@@ -16,10 +40,10 @@ uv add liblaf-pretty
 pip install liblaf-pretty
 ```
 
-## Quick Start
+## 🧪 Quick Start
 
 Use `pformat()` when you want a Rich renderable that can be printed directly or
-converted into stable plain text for logs, tests, and snapshots:
+captured as stable plain text:
 
 ```python
 from rich.console import Console
@@ -49,25 +73,13 @@ print(rendered.to_plain(console=console), end="")
 }
 ```
 
-If you already have a Rich console, use `pprint()` or its alias `pp()`:
+`pformat()` returns a Rich renderable, so width is chosen later when Rich
+renders through a `Console`. If you already have a console, use `pprint()` or
+its alias `pp()` for the print-now path.
 
-```python
-from liblaf.pretty import pprint
+## 🎛️ Configuration
 
-pprint({"alpha": [1, 2, 3]}, max_list=3)
-```
-
-## Built In
-
-- builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- `fieldz`-compatible models, including common `attrs` patterns
-- objects with `__rich_repr__`
-- shared and cyclic references
-- per-call overrides layered on top of `PRETTY_*` defaults
-
-## Configuration
-
-The public formatting helpers accept these keyword overrides:
+The public formatting helpers accept per-call overrides for:
 
 - `max_level`, `max_list`, `max_array`, `max_dict`
 - `max_string`, `max_long`, `max_other`
@@ -84,49 +96,47 @@ export PRETTY_INDENT='[bold]>>[/] '
 `indent` accepts plain text, Rich markup, ANSI-colored strings, or
 `rich.text.Text`.
 
-## Reference Tracking
+## 🔁 Shared References
 
-Referencable objects such as mappings, sets, frozensets, and custom containers
-can be annotated when the same object appears more than once:
+Repeated referencable objects are annotated on first appearance and then render
+as `<Type @ hexid>` references later in the output. Lists and tuples stay safe
+too, but they repeat their value instead of collapsing into a reference tag.
 
-```python
-from rich.console import Console
+## 🧩 Custom Formatting
 
-from liblaf.pretty import pformat
+Reach for the smallest hook that matches the job:
 
-shared = {"x": 1}
-rendered = pformat({"left": shared, "right": shared})
-console = Console(width=80, color_system=None, soft_wrap=True)
+- Implement `__pretty__(self, ctx)` when you own the class.
+- Use `register_type()` for a concrete type and its subclasses.
+- Use `register_func()` for structural matching.
+- Use `register_lazy()` for optional dependencies that should only activate
+  after their module is already imported.
 
-print(rendered.to_plain(console=console), end="")
-```
+`PrettyContext` gives custom formatters the builder helpers they usually need:
+`ctx.container()`, `ctx.leaf()`, `ctx.positional()`, `ctx.name_value()`, and
+`ctx.key_value()`.
 
-```text
-{
-|   'left': {'x': 1},  # <dict @ 7f...>
-|   'right': <dict @ 7f...>
-}
-```
+For the full walkthrough, see the
+[custom formatter guide](https://liblaf.github.io/pretty/guides/custom-formatters/).
 
-Lists and tuples still render safely, but repeated appearances keep rendering
-their value instead of collapsing into a shared-reference tag.
+## 🛠️ Development
 
-## Custom Formatting
-
-You can extend the formatter in four main ways:
-
-- implement `__pretty__(self, ctx)` when you own the class
-- use `register_type()` for one concrete type and its subclasses
-- use `register_func()` for structural matching
-- use `register_lazy()` for optional dependencies that should only activate
-  after their module is already imported
-
-For a practical walkthrough, see [Custom Formatters](docs/guides/custom-formatters.md).
-
-## Development
+Common workflows:
 
 ```bash
 mise run lint
 mise run docs:build
+mise run docs:serve
+mise run gen:ref-pages
 nox
 ```
+
+`nox` runs the test matrix across Python `3.12`, `3.13`, and `3.14`, with both
+`highest` and `lowest-direct` dependency resolution.
+
+---
+
+#### 📝 License
+
+Copyright © 2026 [liblaf](https://github.com/liblaf). <br />
+This project is [MIT](https://spdx.org/licenses/MIT.html) licensed.
