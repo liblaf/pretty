@@ -1,4 +1,9 @@
-"""Configuration types and environment-backed defaults for `liblaf.pretty`."""
+"""Configuration types and environment-backed defaults for `liblaf.pretty`.
+
+`liblaf.pretty` supports both per-call overrides and `PRETTY_*` environment
+variables. This module defines the public override surface and the normalized
+options object used during a single formatting pass.
+"""
 
 from typing import ClassVar, TypedDict
 
@@ -20,7 +25,8 @@ class PrettyOverrides(TypedDict, total=False):
         max_string: Maximum string repr length before truncation.
         max_long: Maximum integer repr length before truncation.
         max_other: Maximum repr length for other scalar values.
-        indent: Indentation used when layouts wrap across lines.
+        indent: Indentation used when layouts wrap across lines. String values
+            may be plain text, Rich markup, or ANSI-colored text.
         hide_defaults: Hide default-valued fields from `fieldz` and `__rich_repr__`
             output.
     """
@@ -37,7 +43,11 @@ class PrettyOverrides(TypedDict, total=False):
 
 
 def _as_text(value: str | Text) -> Text:
-    """Normalize string-like indentation into Rich text."""
+    """Normalize string-like indentation into Rich text.
+
+    Plain strings are treated as Rich markup. ANSI escapes are preserved by
+    routing them through [`Text.from_ansi`][rich.text.Text.from_ansi].
+    """
     if isinstance(value, Text):
         return value
     if "\x1b" in value:
@@ -60,7 +70,8 @@ class PrettyOptions:
         max_string: Maximum string repr length before truncation.
         max_long: Maximum integer repr length before truncation.
         max_other: Maximum repr length for other scalar values.
-        indent: Indentation used when layouts wrap across lines.
+        indent: Indentation used when layouts wrap across lines, normalized to
+            [`Text`][rich.text.Text].
         hide_defaults: Hide default-valued fields from `fieldz` and `__rich_repr__`
             output.
     """
@@ -77,7 +88,11 @@ class PrettyOptions:
 
 
 def field_text(*, default: Text) -> conf.Field[Text]:
-    """Create a config field that accepts markup, ANSI, or Rich text."""
+    """Create a config field that accepts markup, ANSI, or Rich text.
+
+    This is used by [`PrettyConfig`][liblaf.pretty.PrettyConfig] for the public
+    `indent` option.
+    """
     return conf.field(default=default, converter=_as_text)
 
 
@@ -86,6 +101,8 @@ class PrettyConfig(conf.BaseConfig):
 
     Values are loaded from `PRETTY_*` variables and can be overridden per call with
     [`pformat`][liblaf.pretty.pformat] or [`pprint`][liblaf.pretty.pprint].
+    `PRETTY_INDENT` accepts the same markup and ANSI inputs as the per-call
+    `indent` override.
     """
 
     env_prefix: ClassVar[str] = "PRETTY_"
@@ -101,7 +118,11 @@ class PrettyConfig(conf.BaseConfig):
     hide_defaults: conf.Field[bool] = conf.field_bool(default=True)
 
     def dump(self) -> PrettyOptions:
-        """Materialize the current configuration as [`PrettyOptions`][liblaf.pretty.PrettyOptions]."""
+        """Materialize the current configuration as [`PrettyOptions`][liblaf.pretty.PrettyOptions].
+
+        The returned object is a snapshot of the current environment-backed
+        values, with `indent` normalized to [`Text`][rich.text.Text].
+        """
         return PrettyOptions(**self.to_dict())
 
 

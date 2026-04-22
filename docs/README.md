@@ -58,6 +58,45 @@ Rich markup, and ANSI escapes are preserved.
 Width is chosen when Rich renders the result through a `Console`, not when you
 call `pformat()`.
 
+## Built-in Integrations
+
+`liblaf.pretty` ships with a few integrations before you register anything:
+
+- builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
+- `fieldz`-compatible models, including `attrs` models
+- objects with `__rich_repr__`
+- fallback repr output for everything else
+
+`hide_defaults=True` applies to both `fieldz`-compatible models and
+`__rich_repr__` output:
+
+```python
+import attrs
+from rich.console import Console
+
+from liblaf.pretty import pformat
+
+
+@attrs.define
+class Point:
+    x: int = 1
+    y: int = 2
+
+
+console = Console(width=80, color_system=None, soft_wrap=True)
+
+print(pformat(Point()).to_plain(console))
+print(pformat(Point(), hide_defaults=False).to_plain(console), end="")
+```
+
+```text
+Point()
+Point(x=1, y=2)
+```
+
+Objects with `__rich_repr__` can mix named and positional items, and they use
+the same default-hiding behavior.
+
 ## Reference Tracking
 
 The formatter avoids infinite recursion and can annotate repeated references for
@@ -67,6 +106,19 @@ The first occurrence is annotated, and later occurrences render as
 
 Scalar values and sequence literals still render safely, but they may repeat
 their value instead of emitting a shared-reference marker.
+
+## Environment Defaults
+
+Per-call keyword overrides are usually the clearest choice, but you can also
+set environment defaults with `PRETTY_*` variables:
+
+```bash
+export PRETTY_MAX_LIST=2
+export PRETTY_INDENT='[bold]>>[/] '
+```
+
+`PRETTY_INDENT` accepts the same plain-text, Rich-markup, and ANSI-colored
+strings as the `indent=` keyword argument.
 
 ## Extending The Formatter
 

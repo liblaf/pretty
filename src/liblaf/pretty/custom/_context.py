@@ -1,4 +1,9 @@
-"""Context helpers exposed to custom pretty-printers."""
+"""Context helpers exposed to custom pretty-printers.
+
+`PrettyContext` is shared across the full formatting pass. Custom handlers use
+it to build wrapped nodes, while later pipeline stages reuse the same context
+for truncation rules, fallback repr configuration, and reference tracking.
+"""
 
 import functools
 import reprlib
@@ -35,6 +40,11 @@ class PrettyContext(TraceContext):
     Custom handlers usually build output with [`container`][liblaf.pretty.custom.PrettyContext.container],
     [`name_value`][liblaf.pretty.custom.PrettyContext.name_value], and
     [`positional`][liblaf.pretty.custom.PrettyContext.positional].
+
+    Attributes:
+        registry: Handler registry consulted when wrapping objects.
+        wrap_cache: Per-pass cache keyed by `id(obj)` so repeated references
+            keep their identity through the pipeline.
     """
 
     registry: PrettyRegistry = attrs.field(default=registry)
@@ -42,7 +52,10 @@ class PrettyContext(TraceContext):
 
     @functools.cached_property
     def arepr(self) -> reprlib.Repr:
-        """Return the configured `reprlib.Repr` instance used for fallback formatting."""
+        """Return the configured `reprlib.Repr` instance used for fallback formatting.
+
+        The limits mirror the active [`PrettyOptions`][liblaf.pretty.PrettyOptions].
+        """
         arepr: reprlib.Repr = reprlib.Repr(
             maxlevel=self.options.max_level,
             maxtuple=self.options.max_list,
@@ -78,7 +91,11 @@ class PrettyContext(TraceContext):
         return traced_root
 
     def wrap_eager(self, obj: Any) -> WrappedNode:
-        """Wrap `obj` immediately and memoize the result by object identity."""
+        """Wrap `obj` immediately and memoize the result by object identity.
+
+        This preserves shared references for referencable objects and avoids
+        rebuilding the same wrapped node repeatedly during one pass.
+        """
         id_: int = id(obj)
         if (wrapped := self.wrap_cache.get(id_)) is not None:
             return wrapped
@@ -87,7 +104,11 @@ class PrettyContext(TraceContext):
         return wrapped
 
     def wrap_lazy(self, obj: Any) -> WrappedLazy:
-        """Create a lazily wrapped placeholder for `obj`."""
+        """Create a lazily wrapped placeholder for `obj`.
+
+        Lazy children delay the actual wrapping work until the trace step asks
+        for them.
+        """
         return WrappedLazy(
             factory=lambda: self.wrap_eager(obj), identifier=self.identifier(obj)
         )
@@ -121,7 +142,10 @@ class PrettyContext(TraceContext):
         return WrappedKeyValueItem(key=self.wrap_lazy(key), value=self.wrap_lazy(value))
 
     def name_value(self, name: str | Text | None, value: Any) -> WrappedItem:
-        """Build a repr-style `name=value` item."""
+        """Build a repr-style `name=value` item.
+
+        Falsey names fall back to [`positional`][liblaf.pretty.custom.PrettyContext.positional].
+        """
         if not name:
             return self.positional(value)
         if isinstance(name, str):
@@ -165,6 +189,11 @@ class PrettyContext(TraceContext):
 
         Returns:
             A wrapped container ready for tracing and lowering.
+
+        Note:
+            Containers are referencable by default. Repeated appearances of the
+            same container can therefore render as shared-reference tags later
+            in the pipeline.
         """
         if indent is None:
             indent: Text = self.options.indent
@@ -184,7 +213,11 @@ class PrettyContext(TraceContext):
         )
 
     def leaf(self, obj: Any, text: Text, *, referencable: bool = True) -> WrappedLeaf:
-        """Build a scalar leaf node from Rich text."""
+        """Build a scalar leaf node from Rich text.
+
+        Set `referencable=False` for scalar summaries that should always render
+        inline instead of turning into shared-reference tags.
+        """
         return WrappedLeaf(
             value=text, identifier=self.identifier(obj), referencable=referencable
         )
@@ -209,7 +242,11 @@ class PrettyContext(TraceContext):
         key: Callable[[T], Any] | None = None,
         reverse: bool = False,
     ) -> Iterable[T]:
-        """Sort items when possible, otherwise preserve their original order."""
+        """Sort items when possible, otherwise preserve their original order.
+
+        This keeps set- and dict-like output stable when the items are
+        orderable, while still handling unorderable objects gracefully.
+        """
         try:
             return sorted(items, key=key, reverse=reverse)
         except Exception:  # noqa: BLE001

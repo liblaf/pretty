@@ -18,6 +18,22 @@ Use the smallest hook that matches the problem:
 - `register_lazy()` keeps optional integrations cheap because it waits for the
   dependency to be imported elsewhere.
 
+Builtin handlers already cover core containers, `fieldz`-compatible models, and
+`__rich_repr__`, so reach for a custom hook only when the default behavior is
+not enough.
+
+## Resolution Order
+
+The registry checks handlers in this order:
+
+1. `obj.__pretty__(ctx)` when present
+2. `register_type()` handlers, including subclass matches
+3. `register_func()` handlers in reverse registration order
+4. fallback repr-based formatting
+
+Returning `None` from `__pretty__()` or `register_func()` lets the formatter
+continue to the next option.
+
 ## A Concrete Type
 
 ```python
@@ -96,6 +112,11 @@ If `__pretty__` returns `None`, the registry keeps looking for other handlers.
 
 Use `Text` for `begin`, `end`, and custom leaf output. Those values flow
 through the Rich rendering pipeline and are not plain strings.
+
+`ctx.container()` is referencable by default, which means repeated appearances
+of the same object can later collapse into shared-reference tags. Use
+`ctx.leaf(..., referencable=False)` or `ctx.container(..., referencable=False)`
+for inline summaries that should always render as a value.
 
 ## Structural Registration
 

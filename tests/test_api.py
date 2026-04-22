@@ -6,7 +6,7 @@ import re
 import attrs
 from rich.console import Console
 
-from liblaf.pretty import pformat, pprint
+from liblaf.pretty import pformat, pp, pprint
 
 
 def render_to_plain(obj: object, /, *, width: int = 80, **kwargs: object) -> str:
@@ -31,6 +31,10 @@ def test_pprint_writes_to_the_provided_console() -> None:
     assert render_with_pprint({"alpha": [1, 2, 3]}, width=12) == (
         "{\n|   'alpha': [\n|   |   1,\n|   |   2, 3\n|   ]\n}"
     )
+
+
+def test_pp_is_an_alias_of_pprint() -> None:
+    assert pp is pprint
 
 
 def test_hide_defaults_can_be_overridden_per_call() -> None:
@@ -59,3 +63,11 @@ def test_shared_references_are_annotated_for_referencable_objects() -> None:
         rendered,
     )
     assert match is not None
+
+
+def test_non_referencable_sequences_render_their_value_each_time() -> None:
+    child = [1, 2]
+
+    rendered = render_to_plain({"left": child, "right": child}, width=120)
+
+    assert rendered == "{'left': [1, 2], 'right': [1, 2]}"

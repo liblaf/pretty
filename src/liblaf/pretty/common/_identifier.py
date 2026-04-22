@@ -19,7 +19,11 @@ class ObjectIdentifier:
 
     @classmethod
     def from_obj(cls, obj: object) -> Self:
-        """Build an identifier from a concrete object."""
+        """Build an identifier from a concrete object.
+
+        The formatter uses both `type(obj)` and `id(obj)` so later stages can
+        produce readable reference tags such as `<dict @ hexid>`.
+        """
         return cls(cls=type(obj), id=id(obj))
 
     @classmethod

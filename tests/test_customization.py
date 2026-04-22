@@ -34,6 +34,28 @@ def test_dunder_pretty_formats_owned_types() -> None:
     assert render_to_plain(PrettyPoint(1, 2)) == "PrettyPoint(x=1, y=2)"
 
 
+def test_dunder_pretty_can_decline_and_fall_back_to_registered_handlers() -> None:
+    class FallbackPoint:
+        def __init__(self, x: int, y: int) -> None:
+            self.x = x
+            self.y = y
+
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            del ctx
+            return None
+
+    @register_type(FallbackPoint)
+    def _pretty_point(obj: FallbackPoint, ctx: PrettyContext) -> Any:
+        return ctx.container(
+            obj=obj,
+            begin=Text("(", "repr.tag_start"),
+            children=[ctx.name_value("x", obj.x), ctx.name_value("y", obj.y)],
+            end=Text(")", "repr.tag_end"),
+        )
+
+    assert render_to_plain(FallbackPoint(1, 2)) == "FallbackPoint(x=1, y=2)"
+
+
 def test_register_type_formats_matching_classes() -> None:
     class RegisteredPoint:
         def __init__(self, x: int, y: int) -> None:
@@ -50,6 +72,27 @@ def test_register_type_formats_matching_classes() -> None:
         )
 
     assert render_to_plain(RegisteredPoint(1, 2)) == "RegisteredPoint(x=1, y=2)"
+
+
+def test_register_type_also_handles_subclasses() -> None:
+    class BasePoint:
+        def __init__(self, x: int, y: int) -> None:
+            self.x = x
+            self.y = y
+
+    class ChildPoint(BasePoint):
+        pass
+
+    @register_type(BasePoint)
+    def _pretty_point(obj: BasePoint, ctx: PrettyContext) -> Any:
+        return ctx.container(
+            obj=obj,
+            begin=Text("(", "repr.tag_start"),
+            children=[ctx.name_value("x", obj.x), ctx.name_value("y", obj.y)],
+            end=Text(")", "repr.tag_end"),
+        )
+
+    assert render_to_plain(ChildPoint(1, 2)) == "ChildPoint(x=1, y=2)"
 
 
 def test_register_func_can_match_structural_handlers() -> None:

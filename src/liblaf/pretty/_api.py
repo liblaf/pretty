@@ -1,4 +1,8 @@
-"""Top-level formatting helpers."""
+"""Top-level formatting helpers.
+
+These functions are the public entry point into the wrapped, traced, and
+lowered pipeline that powers `liblaf.pretty`.
+"""
 
 from typing import Any, Unpack
 
@@ -16,12 +20,15 @@ from ._config import PrettyOptions, PrettyOverrides, config
 def pformat(obj: Any, **kwargs: Unpack[PrettyOverrides]) -> LoweredNode:
     """Build a width-aware Rich renderable for `obj`.
 
-    The returned object is rendered later by Rich, so the final line breaks still
+    `pformat()` resolves the active configuration, wraps `obj`, traces shared
+    and cyclic references, and lowers the result into a Rich renderable. The
+    returned object is rendered later by Rich, so the final line breaks still
     depend on the target console width.
 
     Args:
         obj: Object to format.
-        **kwargs: Per-call overrides layered on top of [`config`][liblaf.pretty.config].
+        **kwargs: Per-call overrides layered on top of
+            [`config`][liblaf.pretty.config].
 
     Returns:
         A lowered renderable that can be passed to `console.print(...)` or converted
@@ -40,6 +47,8 @@ def pprint(
     obj: Any, *, console: Console | None = None, **kwargs: Unpack[PrettyOverrides]
 ) -> None:
     """Format `obj` and print it through a Rich console.
+
+    This is the side-effecting companion to [`pformat`][liblaf.pretty.pformat].
 
     Args:
         obj: Object to format.

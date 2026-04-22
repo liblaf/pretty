@@ -1,4 +1,8 @@
-"""Registration machinery for custom pretty-printers."""
+"""Registration machinery for custom pretty-printers.
+
+This module exposes the registry object and the decorators that most users
+import from [`liblaf.pretty.custom`][liblaf.pretty.custom].
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,12 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class PrettyHandler[T](Protocol):
-    """Protocol implemented by pretty-printer callbacks."""
+    """Protocol implemented by pretty-printer callbacks.
+
+    Handlers receive the object plus the active
+    [`PrettyContext`][liblaf.pretty.custom.PrettyContext] and either return a
+    wrapped node or `None` to decline.
+    """
 
     def __call__(self, obj: T, ctx: PrettyContext, /) -> WrappedNode | None: ...
 
@@ -49,6 +58,12 @@ class PrettyRegistry:
     Resolution prefers an object's `__pretty__` method, then registered type-based
     handlers, then registered functional handlers, and finally falls back to
     repr-based formatting.
+
+    Attributes:
+        handlers: Structural handlers checked in reverse registration order.
+        lazy_handlers: Deferred registrations waiting for an optional dependency
+            to appear in `sys.modules`.
+        type_dispatcher: `singledispatch`-backed dispatcher for concrete types.
     """
 
     handlers: list[PrettyHandler[Any]] = attrs.field(factory=list)
@@ -58,7 +73,11 @@ class PrettyRegistry:
     )
 
     def __call__(self, obj: Any, ctx: PrettyContext) -> WrappedNode:
-        """Wrap `obj` with the first matching registered handler."""
+        """Wrap `obj` with the first matching registered handler.
+
+        Returning `None` from `__pretty__` or a structural handler lets the
+        registry continue searching for another match.
+        """
         if (pretty := getattr(obj, "__pretty__", None)) is not None and (
             wrapped := pretty(ctx)
         ) is not None:
@@ -116,7 +135,11 @@ class PrettyRegistry:
         return self.type_dispatcher.register(cls, func)
 
     def resolve_lazy(self) -> None:
-        """Resolve pending lazy registrations against already imported modules."""
+        """Resolve pending lazy registrations against already imported modules.
+
+        Once a lazy target resolves, it is promoted into the normal type
+        dispatcher for future lookups.
+        """
         for (module_name, cls_name), handler in list(self.lazy_handlers.items()):
             module: types.ModuleType | None = sys.modules.get(module_name)
             if module is None:
