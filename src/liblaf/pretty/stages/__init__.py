@@ -1,4 +1,4 @@
-"""Public entry point for the wrapped, traced, and lowered stages."""
+"""Internal pipeline stages that turn wrapped objects into Rich renderables."""
 
 from lazy_loader import attach_stub
 

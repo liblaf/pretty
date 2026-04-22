@@ -1,13 +1,12 @@
-"""Sentinel values used while truncating collections."""
+"""Internal sentinel values used during truncation."""
 
 import enum
 from typing import Any
 
 
 class _TruncatedType(enum.Enum):
-    """Sentinel enum used to mark truncated output."""
-
     TRUNCATED = enum.auto()
 
 
 TRUNCATED: Any = _TruncatedType.TRUNCATED
+"""Sentinel inserted when a container is truncated by the active limits."""

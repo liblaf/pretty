@@ -1,8 +1,8 @@
 # Pretty
 
-`liblaf.pretty` gives you repr-like output that stays readable when values get
-large, nested, shared, or cyclic. The formatter builds a Rich renderable first,
-then lets Rich decide the final layout for the active console width.
+`liblaf.pretty` builds repr-like Rich renderables for Python objects. It is a
+good fit for interactive debugging, logs, doctests, and snapshots where you
+want readable output without giving up Rich styling or width-aware wrapping.
 
 ## Start With `pformat()`
 
@@ -12,9 +12,17 @@ from rich.console import Console
 from liblaf.pretty import pformat
 
 rendered = pformat({"alpha": [1, 2, 3]})
-console = Console(width=12, color_system=None, soft_wrap=True)
+console = Console(
+    width=12,
+    color_system=None,
+    soft_wrap=True,
+    no_color=True,
+    markup=False,
+    emoji=False,
+    highlight=False,
+)
 
-print(rendered.to_plain(console), end="")
+print(rendered.to_plain(console=console), end="")
 ```
 
 ```text
@@ -29,6 +37,9 @@ print(rendered.to_plain(console), end="")
 `pformat()` returns a Rich renderable, not a string. Use `console.print()` to
 render it normally, or `.to_plain(console=...)` when you want deterministic
 plain text for logs, tests, or snapshots.
+
+`.to_plain()` creates a safe default `Console` when you omit one, but for
+width-sensitive output it is still best to pass an explicit `Console(width=...)`.
 
 If you already have a Rich console, `pprint()` and `pp()` format and print in
 one step.
@@ -47,65 +58,95 @@ The public formatting functions accept these keyword overrides:
 | `max_long` | `40` | Maximum integer repr length before truncation. |
 | `max_other` | `30` | Maximum repr length for other scalar values. |
 | `indent` | `"|   "` | Indentation used when layouts break across lines. |
-| `hide_defaults` | `True` | Hide default-valued fields from `attrs` and `__rich_repr__` output. |
+| `hide_defaults` | `True` | Hide default-valued fields from `fieldz` and `__rich_repr__` output. |
 
 Each value can also come from `PRETTY_*` environment variables. For example,
 `PRETTY_MAX_LIST=1` has the same effect as `pformat(obj, max_list=1)`.
 
+`indent` accepts `str` and [`Text`][rich.text.Text]. String values are parsed as
+Rich markup, and ANSI escapes are preserved.
+
 Width is chosen when Rich renders the result through a `Console`, not when you
 call `pformat()`.
 
-## Supported Integrations
+## Built In
 
-- Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- Repr-style truncation for deep, wide, or long values
-- `attrs` and `fieldz` objects
-- Objects with `__rich_repr__`
-- Shared and cyclic references
-- Custom handlers via `register_type()`, `register_func()`, `register_lazy()`,
-  or `__pretty__(self, ctx)`
+`liblaf.pretty` ships with a few integrations before you register anything:
 
-Repeated references are turned into tagged references instead of expanding the
-same object forever. The first occurrence is annotated, and later occurrences
-render as `<Type @ hexid>` references.
+- builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
+- `fieldz`-compatible models, including common `attrs` patterns
+- objects with `__rich_repr__`
+- fallback repr output for everything else
 
-## Extending The Formatter
-
-Use `register_type()` when you want a handler for one concrete class:
+`hide_defaults=True` applies to both `fieldz`-compatible models and
+`__rich_repr__` output:
 
 ```python
-from rich.text import Text
+import attrs
+from rich.console import Console
 
-from liblaf.pretty import pformat, register_type
+from liblaf.pretty import pformat
 
 
+@attrs.define
 class Point:
-    def __init__(self, x: int, y: int) -> None:
-        self.x = x
-        self.y = y
+    x: int = 1
+    y: int = 2
 
 
-@register_type(Point)
-def _pretty_point(obj: Point, ctx):
-    return ctx.container(
-        obj=obj,
-        begin=Text("(", "repr.tag_start"),
-        children=[ctx.name_value("x", obj.x), ctx.name_value("y", obj.y)],
-        end=Text(")", "repr.tag_end"),
-    )
+console = Console(width=80, color_system=None, soft_wrap=True)
 
-
-print(pformat(Point(1, 2)).to_plain(), end="")
+print(pformat(Point()).to_plain(console=console))
+print(pformat(Point(), hide_defaults=False).to_plain(console=console), end="")
 ```
 
 ```text
+Point()
 Point(x=1, y=2)
 ```
 
-`ctx.container()` adds the type name for referencable objects, so custom
-handlers usually supply only punctuation such as `(` and `)`.
+Objects with `__rich_repr__` can mix named and positional items. Falsey names
+fall back to positional output, so `("", value)` and `(None, value)` render the
+same way as explicit positional items.
 
-For a deeper guide, see [Custom Formatters](guides/custom-formatters.md).
+## Reference Tracking
+
+The formatter avoids infinite recursion and can annotate repeated references for
+referencable objects such as mappings, sets, frozensets, and custom containers.
+The first occurrence is annotated, and later occurrences render as
+`<Type @ hexid>` references.
+
+Scalar values and sequence literals still render safely, but lists and tuples
+repeat their value instead of emitting a shared-reference marker.
+
+## Environment Defaults
+
+Per-call keyword overrides are usually the clearest choice, but you can also
+set environment defaults with `PRETTY_*` variables:
+
+```bash
+export PRETTY_MAX_LIST=2
+export PRETTY_INDENT='[bold]>>[/] '
+```
+
+`PRETTY_INDENT` accepts the same plain-text, Rich-markup, ANSI-colored strings,
+and `Text` values as the `indent=` keyword argument.
+
+## Extending The Formatter
+
+The extension surface is intentionally small:
+
+- Implement `__pretty__(self, ctx)` when you own the class.
+- Use `register_type()` for a concrete type and its subclasses.
+- Use `register_func()` for structural matching.
+- Use `register_lazy()` for optional dependencies that should only activate
+  after their module is already imported.
+
+`PrettyContext` is the builder object passed into custom formatters. It creates
+wrapped nodes, handles truncation helpers, and keeps identity stable so shared
+references can be detected later in the pipeline.
+
+For a practical walkthrough, see [Custom Formatters](guides/custom-formatters.md).
 
 ## Pipeline
 

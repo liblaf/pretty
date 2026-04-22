@@ -1,4 +1,9 @@
-"""Context helpers for custom pretty handlers."""
+"""Context helpers exposed to custom pretty-printers.
+
+`PrettyContext` is shared across the full formatting pass. Custom handlers use
+it to build wrapped nodes, while later pipeline stages reuse the same context
+for truncation rules, fallback repr configuration, and reference tracking.
+"""
 
 import functools
 import reprlib
@@ -30,17 +35,16 @@ from ._registry import PrettyRegistry, registry
 
 @attrs.define
 class PrettyContext(TraceContext):
-    """Build wrapped nodes for custom pretty handlers.
+    """Helper object passed to custom formatters and pipeline stages.
 
-    Instances of this class are passed to `__pretty__` hooks and registered
-    handlers. Use [PrettyContext.leaf][] for scalar output,
-    [PrettyContext.container][] for repr-like containers, and
-    [PrettyContext.name_value][], [PrettyContext.key_value][], or
-    [PrettyContext.positional][] for children.
+    Custom handlers usually build output with [`container`][liblaf.pretty.custom.PrettyContext.container],
+    [`name_value`][liblaf.pretty.custom.PrettyContext.name_value], and
+    [`positional`][liblaf.pretty.custom.PrettyContext.positional].
 
-    `container()` prepends the object's type name automatically for referencable
-    objects, so `begin` and `end` usually only need delimiters such as `(` and
-    `)`.
+    Attributes:
+        registry: Handler registry consulted when wrapping objects.
+        wrap_cache: Per-pass cache keyed by `id(obj)` so repeated references
+            keep their identity through the pipeline.
     """
 
     registry: PrettyRegistry = attrs.field(default=registry)
@@ -48,6 +52,10 @@ class PrettyContext(TraceContext):
 
     @functools.cached_property
     def arepr(self) -> reprlib.Repr:
+        """Return the configured `reprlib.Repr` instance used for fallback formatting.
+
+        The limits mirror the active [`PrettyOptions`][liblaf.pretty.PrettyOptions].
+        """
         arepr: reprlib.Repr = reprlib.Repr(
             maxlevel=self.options.max_level,
             maxtuple=self.options.max_list,
@@ -64,14 +72,15 @@ class PrettyContext(TraceContext):
         return arepr
 
     def ellipsis_item(self) -> WrappedItem:
-        """Return a positional `...` item."""
+        """Return the positional ellipsis item used for truncated containers."""
         return WrappedPositionalItem.ellipsis()
 
     def identifier(self, obj: Any) -> ObjectIdentifier:
+        """Return the identity record for `obj`."""
         return ObjectIdentifier.from_obj(obj)
 
     def trace(self, root: WrappedNode) -> TracedNode:
-        """Resolve a wrapped tree into traced nodes with shared references."""
+        """Trace wrapped nodes and attach reference information."""
         children, traced_root = root.trace(self)
         queue: deque[WrappedChild] = deque(children)
         while queue:
@@ -82,6 +91,11 @@ class PrettyContext(TraceContext):
         return traced_root
 
     def wrap_eager(self, obj: Any) -> WrappedNode:
+        """Wrap `obj` immediately and memoize the result by object identity.
+
+        This preserves shared references for referencable objects and avoids
+        rebuilding the same wrapped node repeatedly during one pass.
+        """
         id_: int = id(obj)
         if (wrapped := self.wrap_cache.get(id_)) is not None:
             return wrapped
@@ -90,6 +104,11 @@ class PrettyContext(TraceContext):
         return wrapped
 
     def wrap_lazy(self, obj: Any) -> WrappedLazy:
+        """Create a lazily wrapped placeholder for `obj`.
+
+        Lazy children delay the actual wrapping work until the trace step asks
+        for them.
+        """
         return WrappedLazy(
             factory=lambda: self.wrap_eager(obj), identifier=self.identifier(obj)
         )
@@ -99,7 +118,7 @@ class PrettyContext(TraceContext):
     def truncate_dict[K, V](
         self, items: Iterable[tuple[K, V]]
     ) -> Generator[tuple[K, V]]:
-        """Yield dictionary items up to `max_dict`, then a truncation sentinel."""
+        """Yield mapping items up to `max_dict`, then a truncation marker."""
         for i, item in enumerate(items):
             if i >= self.options.max_dict:
                 yield TRUNCATED, TRUNCATED
@@ -107,7 +126,7 @@ class PrettyContext(TraceContext):
             yield item
 
     def truncate_list[T](self, items: Iterable[T]) -> Generator[T]:
-        """Yield list-like items up to `max_list`, then a truncation sentinel."""
+        """Yield list-like items up to `max_list`, then a truncation marker."""
         for i, item in enumerate(items):
             if i >= self.options.max_list:
                 yield TRUNCATED
@@ -117,15 +136,15 @@ class PrettyContext(TraceContext):
     # ------------------------------ WrappedItem ----------------------------- #
 
     def key_value(self, key: Any, value: Any) -> WrappedItem:
-        """Build a `key: value` item or `...` for truncated input."""
+        """Build a `key: value` item or an ellipsis placeholder when truncated."""
         if key is TRUNCATED or value is TRUNCATED:
             return self.ellipsis_item()
         return WrappedKeyValueItem(key=self.wrap_lazy(key), value=self.wrap_lazy(value))
 
     def name_value(self, name: str | Text | None, value: Any) -> WrappedItem:
-        """Build a `name=value` item.
+        """Build a repr-style `name=value` item.
 
-        Pass `None` or an empty name to fall back to a positional item.
+        Falsey names fall back to [`positional`][liblaf.pretty.custom.PrettyContext.positional].
         """
         if not name:
             return self.positional(value)
@@ -134,7 +153,7 @@ class PrettyContext(TraceContext):
         return WrappedNameValueItem(name=name, value=self.wrap_lazy(value))
 
     def positional(self, value: Any) -> WrappedItem:
-        """Build a positional item or `...` for truncated input."""
+        """Build a positional item or an ellipsis placeholder when truncated."""
         if value is TRUNCATED:
             return self.ellipsis_item()
         return WrappedPositionalItem(value=self.wrap_lazy(value))
@@ -153,24 +172,28 @@ class PrettyContext(TraceContext):
         empty: Text | None = None,
         referencable: bool = True,
     ) -> WrappedContainer:
-        """Build a tagged container node.
+        """Build a repr-like container node.
 
         Args:
-            obj: Source object represented by the container.
-            begin: Opening delimiter, usually punctuation such as `(` or `{`.
-            children: Wrapped children to render inside the container.
-            end: Closing delimiter.
-            indent: Indentation used for broken layouts. Defaults to the active
-                configured indent.
-            add_separators: Whether to add repr-style commas and spaces between
-                children.
-            empty: Replacement text for empty containers. Defaults to
-                `begin + end`.
-            referencable: Whether repeated appearances should become
-                `<Type @ hexid>` references.
+            obj: Original object represented by the container.
+            begin: Opening punctuation, usually styled Rich text such as `(` or `[`.
+            children: Wrapped child items to render inside the container.
+            end: Closing punctuation.
+            indent: Indentation used for wrapped layouts. Defaults to the active
+                formatter option.
+            add_separators: When `True`, add repr-style spaces and commas between
+                children before building the container.
+            empty: Alternate rendering for empty containers such as `set()`.
+            referencable: Whether repeated appearances of `obj` should be rendered as
+                shared references later in the pipeline.
 
         Returns:
-            A wrapped container node.
+            A wrapped container ready for tracing and lowering.
+
+        Note:
+            Containers are referencable by default. Repeated appearances of the
+            same container can therefore render as shared-reference tags later
+            in the pipeline.
         """
         if indent is None:
             indent: Text = self.options.indent
@@ -190,7 +213,11 @@ class PrettyContext(TraceContext):
         )
 
     def leaf(self, obj: Any, text: Text, *, referencable: bool = True) -> WrappedLeaf:
-        """Build a leaf node from preformatted `Text`."""
+        """Build a scalar leaf node from Rich text.
+
+        Set `referencable=False` for scalar summaries that should always render
+        inline instead of turning into shared-reference tags.
+        """
         return WrappedLeaf(
             value=text, identifier=self.identifier(obj), referencable=referencable
         )
@@ -199,7 +226,7 @@ class PrettyContext(TraceContext):
 
     @staticmethod
     def add_separators(items: Iterable[WrappedItem]) -> list[WrappedItem]:
-        """Add repr-style commas and spaces between items."""
+        """Add repr-style spacing and trailing commas to a sequence of items."""
         items: list[WrappedItem] = list(items)
         for i, item in enumerate(items):
             if i > 0:
@@ -215,7 +242,11 @@ class PrettyContext(TraceContext):
         key: Callable[[T], Any] | None = None,
         reverse: bool = False,
     ) -> Iterable[T]:
-        """Sort items when possible, otherwise preserve the original order."""
+        """Sort items when possible, otherwise preserve their original order.
+
+        This keeps set- and dict-like output stable when the items are
+        orderable, while still handling unorderable objects gracefully.
+        """
         try:
             return sorted(items, key=key, reverse=reverse)
         except Exception:  # noqa: BLE001

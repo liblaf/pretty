@@ -1,3 +1,5 @@
+"""Reference nodes emitted for repeated referencable objects."""
+
 from typing import override
 
 import attrs
@@ -12,6 +14,8 @@ from ._node_base import TracedNode
 
 @attrs.define
 class TracedRef(TracedNode):
+    """Traced node that lowers into a `<Type @ hexid>` reference tag."""
+
     identifier: ObjectIdentifier
 
     @override

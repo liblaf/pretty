@@ -1,4 +1,12 @@
-"""Extension hooks for custom pretty handlers."""
+"""Customization helpers for teaching `liblaf.pretty` new formatting rules.
+
+Import [`PrettyContext`][liblaf.pretty.custom.PrettyContext] together with
+[`register_type`][liblaf.pretty.custom.register_type],
+[`register_func`][liblaf.pretty.custom.register_func], or
+[`register_lazy`][liblaf.pretty.custom.register_lazy] when you want to format a
+new kind of object. Importing this module also loads the built-in handlers for
+core containers, `fieldz`-compatible models, and `__rich_repr__` objects.
+"""
 
 from ._context import PrettyContext
 

@@ -4,7 +4,7 @@
 # Basics
 site_name = "Pretty"
 site_url = "__SITE_URL__"
-site_description = "Pretty-print Python objects as Rich renderables with width-aware layout."
+site_description = "Pretty-print Python objects as repr-like, width-aware Rich renderables."
 site_author = "liblaf"
 # Navigation
 nav = [

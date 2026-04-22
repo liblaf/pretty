@@ -1,7 +1,9 @@
-"""Pretty-print Python objects as Rich renderables.
+"""Public API for `liblaf.pretty`.
 
-Most callers use [liblaf.pretty.pformat][] to build a renderable or
-[liblaf.pretty.pprint][] to print directly to the active Rich console.
+Import [`pformat`][liblaf.pretty.pformat] when you want a width-aware Rich
+renderable, [`pprint`][liblaf.pretty.pprint] or [`pp`][liblaf.pretty.pp] when
+you want to print immediately, and the registration helpers when you need to
+teach the formatter about custom types.
 """
 
 from lazy_loader import attach_stub

@@ -1,3 +1,5 @@
+"""Lazy wrapper that defers actual wrapping until tracing needs it."""
+
 from collections.abc import Callable, Iterable
 from typing import override
 
@@ -12,6 +14,8 @@ from ._node_base import WrappedNode
 
 @attrs.define
 class WrappedLazy(WrappedNode):
+    """Placeholder node that memoizes the wrapped result on first use."""
+
     factory: Callable[[], WrappedNode]
     _cache: WrappedNode | None = attrs.field(default=None, init=False)
 

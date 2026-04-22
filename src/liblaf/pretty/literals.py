@@ -1,3 +1,5 @@
+"""Styled Rich text fragments reused throughout the formatter."""
+
 from rich.text import Text
 
 COLON: Text = Text.assemble((":", "repr.colon"), " ")

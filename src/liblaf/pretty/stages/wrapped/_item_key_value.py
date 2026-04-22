@@ -1,3 +1,5 @@
+"""Wrapped `key: value` items."""
+
 from typing import override
 
 import attrs
@@ -14,6 +16,8 @@ from ._node_base import WrappedNode
 
 @attrs.define
 class WrappedKeyValueItem(WrappedItem):
+    """Wrapped mapping-style item whose key and value trace independently."""
+
     key: WrappedNode
     sep: Text = attrs.field(default=COLON, kw_only=True)
     value: WrappedNode

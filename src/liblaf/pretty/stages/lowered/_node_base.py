@@ -1,3 +1,5 @@
+"""Shared base class for lowered scalar and container nodes."""
+
 import abc
 import functools
 
@@ -13,6 +15,8 @@ from ._context import CompileContext
 
 @attrs.frozen
 class LoweredNode(Lowered):
+    """Base class for lowered nodes with optional reference annotations."""
+
     annotation: Text = attrs.field(default=EMPTY, kw_only=True)
 
     @abc.abstractmethod

@@ -1,4 +1,4 @@
-"""Traversal state for wrapped nodes."""
+"""Tracing state shared while wrapped nodes expand into traced nodes."""
 
 import attrs
 
@@ -10,7 +10,7 @@ from ._typename import disambiguate_typenames
 
 @attrs.define
 class TraceContext:
-    """Mutable state used while resolving wrapped nodes into traced nodes."""
+    """Mutable tracing context with options, caches, and discovered types."""
 
     depth: int = 0
     options: PrettyOptions = attrs.field(factory=config.dump)
@@ -18,5 +18,5 @@ class TraceContext:
     types: set[type] = attrs.field(factory=set)
 
     def finish(self) -> LowerContext:
-        """Freeze the traced type information into a lowering context."""
+        """Build the lowering context with disambiguated type names."""
         return LowerContext(typenames=disambiguate_typenames(self.types))

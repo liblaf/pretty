@@ -1,3 +1,5 @@
+"""Shared base class for wrapped nodes that participate in reference tracking."""
+
 import attrs
 
 from liblaf.pretty.stages.traced import TracedRef
@@ -8,9 +10,12 @@ from ._node_base import WrappedNode
 
 @attrs.define
 class WrappedObject(WrappedNode):
+    """Wrapped node that can emit a traced reference on repeated visits."""
+
     referencable: bool = attrs.field(default=True, kw_only=True)
 
     def visit(self, ctx: TraceContext) -> TracedRef | None:
+        """Record this object's type and return a reference when seen before."""
         if self.identifier.cls is not None:
             ctx.types.add(self.identifier.cls)
         if (
