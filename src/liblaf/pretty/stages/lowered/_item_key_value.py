@@ -1,3 +1,5 @@
+"""Lowered `key: value` and `name=value` item layouts."""
+
 import functools
 from collections.abc import Generator
 from typing import cast, override
@@ -14,6 +16,8 @@ from ._node_base import LoweredNode
 
 @attrs.frozen
 class LoweredKeyValueItem(LoweredItem):
+    """Lowered mapping-style item with several layout strategies."""
+
     key: LoweredNode
     sep: Text
     value: LoweredNode

@@ -1,3 +1,5 @@
+"""Base class for wrapped items."""
+
 import abc
 from collections.abc import Iterable
 from typing import override
@@ -14,6 +16,8 @@ from ._context import TraceContext
 
 @attrs.define
 class WrappedItem(Wrapped):
+    """Base wrapped item that stores prefix and suffix punctuation."""
+
     prefix: Text = attrs.field(default=EMPTY, kw_only=True)
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 

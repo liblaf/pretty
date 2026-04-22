@@ -1,3 +1,5 @@
+"""Traced `name=value` items."""
+
 from typing import override
 
 import attrs
@@ -13,6 +15,8 @@ from ._node_base import TracedNode
 
 @attrs.define
 class TracedNameValueItem(TracedItem):
+    """Traced named item stored as a styled name plus traced value."""
+
     name: Text
     sep: Text = attrs.field(default=EQUAL, kw_only=True)
     value: TracedNode

@@ -1,3 +1,5 @@
+"""Lowered scalar leaves."""
+
 import functools
 from collections.abc import Generator
 from typing import Self, cast, override
@@ -16,6 +18,8 @@ from ._node_base import LoweredNode
 
 @attrs.frozen
 class LoweredLeaf(LoweredNode):
+    """Lowered scalar text value, optionally annotated with a shared reference."""
+
     value: Text
 
     @classmethod

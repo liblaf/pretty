@@ -1,14 +1,14 @@
-# ✨ Pretty
+# Pretty
 
-`liblaf.pretty` is a width-aware, repr-like pretty-printer for Python objects
-built on [Rich](https://github.com/Textualize/rich).
+`liblaf.pretty` pretty-prints Python objects as repr-like, width-aware Rich
+renderables.
 
 [Guide](docs/README.md) ·
 [Custom Formatters](docs/guides/custom-formatters.md) ·
 [API Reference](https://liblaf.github.io/pretty/) ·
 [Changelog](CHANGELOG.md)
 
-## 📦 Install
+## Install
 
 ```bash
 uv add liblaf-pretty
@@ -16,10 +16,10 @@ uv add liblaf-pretty
 pip install liblaf-pretty
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 Use `pformat()` when you want a Rich renderable that can be printed directly or
-converted to deterministic plain text for logs, tests, and snapshots:
+converted into stable plain text for logs, tests, and snapshots:
 
 ```python
 from rich.console import Console
@@ -27,9 +27,17 @@ from rich.console import Console
 from liblaf.pretty import pformat
 
 rendered = pformat({"alpha": [1, 2, 3]})
-console = Console(width=12, color_system=None, soft_wrap=True)
+console = Console(
+    width=12,
+    color_system=None,
+    soft_wrap=True,
+    no_color=True,
+    markup=False,
+    emoji=False,
+    highlight=False,
+)
 
-print(rendered.to_plain(console), end="")
+print(rendered.to_plain(console=console), end="")
 ```
 
 ```text
@@ -49,27 +57,24 @@ from liblaf.pretty import pprint
 pprint({"alpha": [1, 2, 3]}, max_list=3)
 ```
 
-## ✅ What It Handles
+## Built In
 
-- Builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- `attrs` / `fieldz`-compatible models, with defaults hidden by default
-- Objects with `__rich_repr__`
-- Shared and cyclic references
-- Per-call overrides plus environment-backed `PRETTY_*` defaults
-- Custom hooks through `__pretty__()`, `register_type()`, `register_func()`,
-  and `register_lazy()`
+- builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
+- `fieldz`-compatible models, including common `attrs` patterns
+- objects with `__rich_repr__`
+- shared and cyclic references
+- per-call overrides layered on top of `PRETTY_*` defaults
 
-## 🎛️ Configuration
+## Configuration
 
-The public formatters accept these keyword overrides:
+The public formatting helpers accept these keyword overrides:
 
 - `max_level`, `max_list`, `max_array`, `max_dict`
 - `max_string`, `max_long`, `max_other`
 - `indent`
 - `hide_defaults`
 
-Those overrides sit on top of environment-backed defaults loaded from
-`PRETTY_*` variables:
+Those values can also come from environment variables:
 
 ```bash
 export PRETTY_MAX_LIST=2
@@ -79,7 +84,7 @@ export PRETTY_INDENT='[bold]>>[/] '
 `indent` accepts plain text, Rich markup, ANSI-colored strings, or
 `rich.text.Text`.
 
-## 🔁 Shared References
+## Reference Tracking
 
 Referencable objects such as mappings, sets, frozensets, and custom containers
 can be annotated when the same object appears more than once:
@@ -93,7 +98,7 @@ shared = {"x": 1}
 rendered = pformat({"left": shared, "right": shared})
 console = Console(width=80, color_system=None, soft_wrap=True)
 
-print(rendered.to_plain(console), end="")
+print(rendered.to_plain(console=console), end="")
 ```
 
 ```text
@@ -103,56 +108,25 @@ print(rendered.to_plain(console), end="")
 }
 ```
 
-Sequence literals still render safely, but they may repeat their value instead
-of becoming a shared-reference tag.
+Lists and tuples still render safely, but repeated appearances keep rendering
+their value instead of collapsing into a shared-reference tag.
 
-## 🧩 Custom Formatting
+## Custom Formatting
 
-Builtin handlers already cover a lot of ground, but you can register a custom
-formatter when you need one:
+You can extend the formatter in four main ways:
 
-```python
-from rich.text import Text
+- implement `__pretty__(self, ctx)` when you own the class
+- use `register_type()` for one concrete type and its subclasses
+- use `register_func()` for structural matching
+- use `register_lazy()` for optional dependencies that should only activate
+  after their module is already imported
 
-from liblaf.pretty import pformat, register_type
+For a practical walkthrough, see [Custom Formatters](docs/guides/custom-formatters.md).
 
-
-class Point:
-    def __init__(self, x: int, y: int) -> None:
-        self.x = x
-        self.y = y
-
-
-@register_type(Point)
-def _pretty_point(obj: Point, ctx):
-    return ctx.container(
-        obj=obj,
-        begin=Text("(", "repr.tag_start"),
-        children=[ctx.name_value("x", obj.x), ctx.name_value("y", obj.y)],
-        end=Text(")", "repr.tag_end"),
-    )
-
-
-print(pformat(Point(1, 2)).to_plain(), end="")
-```
-
-```text
-Point(x=1, y=2)
-```
-
-`ctx.container()` adds the type name for referencable objects, so custom
-handlers usually only provide punctuation and child items.
-
-## 🛠️ Development
+## Development
 
 ```bash
 mise run lint
 mise run docs:build
 nox
 ```
-
-## 📚 Learn More
-
-- [Project guide](docs/README.md)
-- [Custom formatter guide](docs/guides/custom-formatters.md)
-- [Published API reference](https://liblaf.github.io/pretty/)

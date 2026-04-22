@@ -1,3 +1,5 @@
+"""Traced scalar leaves."""
+
 from typing import Self, override
 
 import attrs
@@ -13,6 +15,8 @@ from ._node_object import TracedObject
 
 @attrs.define
 class TracedLeaf(TracedObject):
+    """Traced scalar text value with helpers for literals and ellipses."""
+
     value: Text
 
     @classmethod

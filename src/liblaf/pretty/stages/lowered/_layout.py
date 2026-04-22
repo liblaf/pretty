@@ -1,3 +1,5 @@
+"""Layout strategy interfaces used by lowered nodes and items."""
+
 import abc
 from collections.abc import Iterable
 
@@ -9,6 +11,8 @@ from ._context import CompileContext
 
 @attrs.frozen
 class Layout(abc.ABC):
+    """Candidate rendering strategy for a lowered node or item."""
+
     @abc.abstractmethod
     def fits(self, ctx: CompileContext) -> bool: ...
 
@@ -20,6 +24,7 @@ class Layout(abc.ABC):
 
 
 def choose_layout(layouts: Iterable[Layout], ctx: CompileContext) -> Layout:
+    """Pick the first supported layout that fits, or the last fallback."""
     for layout in layouts:
         if not layout.supports(ctx):
             continue

@@ -1,3 +1,5 @@
+"""Shared base class for traced nodes that can emit reference annotations."""
+
 import attrs
 from rich.text import Text
 
@@ -10,10 +12,13 @@ from ._node_base import TracedNode
 
 @attrs.define
 class TracedObject(TracedNode):
+    """Traced node that tracks repeated references for one object identity."""
+
     has_ref: bool = attrs.field(default=False, kw_only=True)
     identifier: ObjectIdentifier = attrs.field(kw_only=True)
 
     def make_annotation(self, ctx: LowerContext) -> Text:
+        """Return the `# <Type @ hexid>` comment shown on first appearance."""
         if not self.has_ref:
             return EMPTY
         assert self.identifier.cls is not None

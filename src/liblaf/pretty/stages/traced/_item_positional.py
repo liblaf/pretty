@@ -1,3 +1,5 @@
+"""Traced positional items."""
+
 from typing import Self, override
 
 import attrs
@@ -14,6 +16,8 @@ from ._node_leaf import TracedLeaf
 
 @attrs.define
 class TracedPositionalItem(TracedItem):
+    """Traced positional item used for ordinary children and ellipses."""
+
     value: TracedNode
 
     @classmethod

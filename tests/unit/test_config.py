@@ -8,7 +8,7 @@ from pathlib import Path
 
 from rich.text import Text
 
-from liblaf.pretty import PrettyOptions
+from liblaf.pretty import PrettyConfig, PrettyOptions
 from liblaf.pretty.common import ObjectIdentifier
 
 
@@ -66,8 +66,17 @@ def test_pretty_options_accept_ansi_indent() -> None:
     assert bool(options.indent.spans)
 
 
+def test_pretty_config_dump_materializes_pretty_options() -> None:
+    dumped = PrettyConfig().dump()
+
+    assert isinstance(dumped, PrettyOptions)
+    assert dumped.max_list == 6
+    assert dumped.hide_defaults is True
+    assert dumped.indent.plain == "|   "
+
+
 def test_pretty_config_dump_reads_environment_overrides() -> None:
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     script = """
 import json
 import sys

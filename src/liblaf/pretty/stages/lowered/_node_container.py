@@ -1,3 +1,5 @@
+"""Lowered repr-like containers."""
+
 import functools
 from collections.abc import Generator
 from typing import cast, override
@@ -14,6 +16,8 @@ from ._node_base import LoweredNode
 
 @attrs.frozen
 class LoweredContainer(LoweredNode):
+    """Lowered container with begin and end tags plus child items."""
+
     begin: Text
     children: list[LoweredItem]
     end: Text

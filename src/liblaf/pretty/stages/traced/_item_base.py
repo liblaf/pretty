@@ -1,3 +1,5 @@
+"""Base class for traced items."""
+
 import abc
 from typing import override
 
@@ -13,6 +15,8 @@ from ._context import LowerContext
 
 @attrs.define
 class TracedItem(Traced):
+    """Base traced item that preserves prefix and suffix punctuation."""
+
     prefix: Text = attrs.field(default=EMPTY, kw_only=True)
     suffix: Text = attrs.field(default=EMPTY, kw_only=True)
 

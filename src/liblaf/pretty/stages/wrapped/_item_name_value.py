@@ -1,3 +1,5 @@
+"""Wrapped `name=value` items."""
+
 from typing import override
 
 import attrs
@@ -14,6 +16,8 @@ from ._node_base import WrappedNode
 
 @attrs.define
 class WrappedNameValueItem(WrappedItem):
+    """Wrapped named item whose name is already represented as styled text."""
+
     name: Text
     sep: Text = attrs.field(default=EQUAL, kw_only=True)
     value: WrappedNode

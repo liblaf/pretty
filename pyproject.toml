@@ -3,7 +3,7 @@
 
 [project]
 name = "liblaf-pretty"
-description = "Width-aware, repr-like pretty-printer for Python objects built on Rich."
+description = "Pretty-print Python objects as repr-like, width-aware Rich renderables."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"

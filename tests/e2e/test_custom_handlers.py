@@ -2,22 +2,19 @@ from __future__ import annotations
 
 import sys
 import types
+from collections.abc import Callable
 from typing import Any
 
 import pytest
-from rich.console import Console
 from rich.text import Text
 
-from liblaf.pretty import pformat, register_func, register_lazy, register_type
+from liblaf.pretty import register_func, register_lazy, register_type
 from liblaf.pretty.custom import PrettyContext
 
-
-def render_to_plain(obj: object, /, *, width: int = 80, **kwargs: object) -> str:
-    console = Console(width=width, color_system=None, soft_wrap=True)
-    return pformat(obj, **kwargs).to_plain(console)
+type RenderText = Callable[..., str]
 
 
-def test_dunder_pretty_formats_owned_types() -> None:
+def test_dunder_pretty_formats_owned_types(render_plain: RenderText) -> None:
     class PrettyPoint:
         def __init__(self, x: int, y: int) -> None:
             self.x = x
@@ -31,10 +28,26 @@ def test_dunder_pretty_formats_owned_types() -> None:
                 end=Text(")", "repr.tag_end"),
             )
 
-    assert render_to_plain(PrettyPoint(1, 2)) == "PrettyPoint(x=1, y=2)"
+    assert render_plain(PrettyPoint(1, 2)) == "PrettyPoint(x=1, y=2)"
 
 
-def test_dunder_pretty_can_decline_and_fall_back_to_registered_handlers() -> None:
+def test_dunder_pretty_can_choose_a_custom_indent(render_plain: RenderText) -> None:
+    class Indented:
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            return ctx.container(
+                obj=self,
+                begin=Text("(", "repr.tag_start"),
+                children=[ctx.positional(1), ctx.positional(2), ctx.positional(3)],
+                end=Text(")", "repr.tag_end"),
+                indent=Text("-> ", "repr.indent"),
+            )
+
+    assert render_plain(Indented(), width=12) == "Indented(\n-> 1, 2, 3\n)"
+
+
+def test_dunder_pretty_can_decline_and_fall_back_to_registered_handlers(
+    render_plain: RenderText,
+) -> None:
     class FallbackPoint:
         def __init__(self, x: int, y: int) -> None:
             self.x = x
@@ -53,10 +66,10 @@ def test_dunder_pretty_can_decline_and_fall_back_to_registered_handlers() -> Non
             end=Text(")", "repr.tag_end"),
         )
 
-    assert render_to_plain(FallbackPoint(1, 2)) == "FallbackPoint(x=1, y=2)"
+    assert render_plain(FallbackPoint(1, 2)) == "FallbackPoint(x=1, y=2)"
 
 
-def test_register_type_formats_matching_classes() -> None:
+def test_register_type_formats_matching_classes(render_plain: RenderText) -> None:
     class RegisteredPoint:
         def __init__(self, x: int, y: int) -> None:
             self.x = x
@@ -71,10 +84,10 @@ def test_register_type_formats_matching_classes() -> None:
             end=Text(")", "repr.tag_end"),
         )
 
-    assert render_to_plain(RegisteredPoint(1, 2)) == "RegisteredPoint(x=1, y=2)"
+    assert render_plain(RegisteredPoint(1, 2)) == "RegisteredPoint(x=1, y=2)"
 
 
-def test_register_type_also_handles_subclasses() -> None:
+def test_register_type_also_handles_subclasses(render_plain: RenderText) -> None:
     class BasePoint:
         def __init__(self, x: int, y: int) -> None:
             self.x = x
@@ -92,10 +105,10 @@ def test_register_type_also_handles_subclasses() -> None:
             end=Text(")", "repr.tag_end"),
         )
 
-    assert render_to_plain(ChildPoint(1, 2)) == "ChildPoint(x=1, y=2)"
+    assert render_plain(ChildPoint(1, 2)) == "ChildPoint(x=1, y=2)"
 
 
-def test_register_func_can_match_structural_handlers() -> None:
+def test_register_func_can_match_structural_handlers(render_plain: RenderText) -> None:
     class Vector:
         def __init__(self, x: int, y: int) -> None:
             self.x = x
@@ -112,11 +125,12 @@ def test_register_func_can_match_structural_handlers() -> None:
             end=Text(">", "repr.tag_end"),
         )
 
-    assert render_to_plain(Vector(1, 2)) == "Vector<1, 2>"
+    assert render_plain(Vector(1, 2)) == "Vector<1, 2>"
 
 
 def test_register_lazy_waits_for_the_target_module(
     monkeypatch: pytest.MonkeyPatch,
+    render_plain: RenderText,
 ) -> None:
     module_name = "_pretty_lazy_example"
     class_name = "LazyValue"
@@ -138,11 +152,11 @@ def test_register_lazy_waits_for_the_target_module(
             obj, Text(f"LazyValue({obj.value})", "repr.tag_name"), referencable=False
         )
 
-    before_import = render_to_plain(value)
+    before_import = render_plain(value)
     assert before_import.startswith("<_pretty_lazy")
     assert before_import.endswith(">")
     assert before_import != "LazyValue(7)"
 
     monkeypatch.setitem(sys.modules, module_name, module)
 
-    assert render_to_plain(value) == "LazyValue(7)"
+    assert render_plain(value) == "LazyValue(7)"

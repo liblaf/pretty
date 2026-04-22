@@ -1,3 +1,5 @@
+"""Traced repr-like containers."""
+
 from typing import override
 
 import attrs
@@ -12,6 +14,8 @@ from ._node_object import TracedObject
 
 @attrs.define
 class TracedContainer(TracedObject):
+    """Traced container that lowers into tagged leaf or container output."""
+
     begin: Text
     children: list[TracedItem]
     end: Text

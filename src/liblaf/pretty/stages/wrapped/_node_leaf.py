@@ -1,3 +1,5 @@
+"""Wrapped scalar leaves."""
+
 from typing import Self, override
 
 import attrs
@@ -13,6 +15,8 @@ from ._node_object import WrappedObject
 
 @attrs.define
 class WrappedLeaf(WrappedObject):
+    """Wrapped scalar text node with an ellipsis constructor."""
+
     value: Text
 
     @classmethod

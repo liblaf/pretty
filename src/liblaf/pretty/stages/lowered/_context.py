@@ -1,3 +1,5 @@
+"""Rendering helpers used while compiling lowered nodes into Rich segments."""
+
 import contextlib
 import functools
 from collections.abc import Generator, Iterable
@@ -12,6 +14,8 @@ type Renderable = RenderableType | Segment | None
 
 
 class Segments(rich.segment.Segments):
+    """Mutable segment collection with a cached display width."""
+
     segments: list[Segment]
 
     def __init__(
@@ -32,6 +36,12 @@ def _default_console() -> Console:
 
 @attrs.define
 class CompileContext:
+    """Stateful renderer used by lowered nodes and items.
+
+    The context keeps track of the current output column, the active line
+    prefix, and the Rich console options used to render nested text.
+    """
+
     console: Console = attrs.field(factory=_default_console)
     column: int = attrs.field(default=0, kw_only=True)
     prefix: Segments = attrs.field(factory=Segments, kw_only=True)

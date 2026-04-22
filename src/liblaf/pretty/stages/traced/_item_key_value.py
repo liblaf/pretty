@@ -1,3 +1,5 @@
+"""Traced `key: value` items."""
+
 from typing import override
 
 import attrs
@@ -13,6 +15,8 @@ from ._node_base import TracedNode
 
 @attrs.define
 class TracedKeyValueItem(TracedItem):
+    """Traced mapping-style item whose key and value attach later."""
+
     key: TracedNode
     sep: Text = attrs.field(default=COLON, kw_only=True)
     value: TracedNode

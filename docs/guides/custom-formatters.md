@@ -34,6 +34,35 @@ The registry checks handlers in this order:
 Returning `None` from `__pretty__()` or `register_func()` lets the formatter
 continue to the next option.
 
+## A `__pretty__()` Method
+
+If you control the class, `__pretty__(self, ctx)` keeps the formatting logic
+next to the model:
+
+```python
+from rich.text import Text
+
+
+class Point:
+    def __init__(self, x: int, y: int) -> None:
+        self.x = x
+        self.y = y
+
+    def __pretty__(self, ctx):
+        return ctx.container(
+            obj=self,
+            begin=Text("(", "repr.tag_start"),
+            children=[ctx.name_value("x", self.x), ctx.name_value("y", self.y)],
+            end=Text(")", "repr.tag_end"),
+        )
+```
+
+The hook receives only `ctx`. Older `ctx, depth` examples are stale for this
+package.
+
+If `__pretty__()` returns `None`, the registry keeps looking for other
+handlers.
+
 ## A Concrete Type
 
 ```python
@@ -71,34 +100,6 @@ referencable objects, so `begin` and `end` usually only need delimiters.
 `register_type()` uses `functools.singledispatch`, so subclasses also match
 unless you register something more specific.
 
-## Owning The Type
-
-If you control the class, `__pretty__(self, ctx)` keeps the formatting logic
-next to the model:
-
-```python
-from rich.text import Text
-
-
-class Point:
-    def __init__(self, x: int, y: int) -> None:
-        self.x = x
-        self.y = y
-
-    def __pretty__(self, ctx):
-        return ctx.container(
-            obj=self,
-            begin=Text("(", "repr.tag_start"),
-            children=[ctx.name_value("x", self.x), ctx.name_value("y", self.y)],
-            end=Text(")", "repr.tag_end"),
-        )
-```
-
-The hook receives only `ctx`. Older `ctx, depth` examples are stale for this
-package.
-
-If `__pretty__` returns `None`, the registry keeps looking for other handlers.
-
 ## Building Output With `PrettyContext`
 
 `PrettyContext` exposes a few helpers that are enough for most handlers:
@@ -117,6 +118,31 @@ through the Rich rendering pipeline and are not plain strings.
 of the same object can later collapse into shared-reference tags. Use
 `ctx.leaf(..., referencable=False)` or `ctx.container(..., referencable=False)`
 for inline summaries that should always render as a value.
+
+`ctx.name_value(name, value)` falls back to positional output when `name` is
+falsey. That matches the built-in `__rich_repr__` adapter, where `("", value)`
+and `(None, value)` are treated like positional items.
+
+`ctx.container()` adds repr-style commas and spaces by default. Pass
+`add_separators=False` when you want full control over child punctuation, or
+`empty=...` when the empty rendering should not be just `begin + end`.
+
+## Helper Utilities
+
+`PrettyContext` also exposes a few utility helpers that are useful in custom
+handlers:
+
+- `ctx.truncate_list(items)` yields values up to `max_list`, then a truncation
+  marker.
+- `ctx.truncate_dict(items)` yields key-value pairs up to `max_dict`, then a
+  truncation marker.
+- `ctx.possibly_sorted(items)` sorts orderable values and preserves original
+  order when sorting would fail.
+- `ctx.add_separators(items)` attaches repr-style commas and spaces to existing
+  wrapped items.
+
+These helpers are how the built-in container handlers keep behavior aligned
+with the public configuration surface.
 
 ## Structural Registration
 
@@ -149,3 +175,13 @@ def _pretty_ndarray(obj, ctx):
 
 Once `numpy` is present in `sys.modules`, the handler is resolved and cached for
 future formatting calls.
+
+## When To Mark Things Referencable
+
+Containers built with `ctx.container()` participate in shared-reference
+tracking by default. That is usually what you want for mappings, sets,
+frozensets, and object-like containers.
+
+Use `referencable=False` when a formatter is really just an inline summary.
+Builtin scalar handlers and list-like sequence handlers use that path so they
+always render their value instead of collapsing into `<Type @ hexid>` markers.

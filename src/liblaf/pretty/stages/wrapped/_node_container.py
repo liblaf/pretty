@@ -1,3 +1,5 @@
+"""Wrapped repr-like containers."""
+
 from collections.abc import Generator, Iterable
 from typing import override
 
@@ -15,6 +17,8 @@ from ._node_object import WrappedObject
 
 @attrs.define
 class WrappedContainer(WrappedObject):
+    """Wrapped container that enqueues child items for breadth-first tracing."""
+
     begin: Text
     children: Iterable[WrappedItem]
     end: Text

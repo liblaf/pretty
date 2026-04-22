@@ -1,3 +1,5 @@
+"""Wrapped positional items."""
+
 from typing import Self, override
 
 import attrs
@@ -13,6 +15,8 @@ from ._node_leaf import WrappedLeaf
 
 @attrs.define
 class WrappedPositionalItem(WrappedItem):
+    """Wrapped positional item used for ordinary children and ellipses."""
+
     value: WrappedNode
 
     @classmethod

@@ -1,3 +1,5 @@
+"""Lowered positional item layouts."""
+
 import functools
 from collections.abc import Generator
 from typing import Self, cast, override
@@ -17,6 +19,8 @@ from ._node_leaf import LoweredLeaf
 
 @attrs.frozen
 class LoweredPositionalItem(LoweredItem):
+    """Lowered positional item used for container children and ellipses."""
+
     value: LoweredNode
 
     @classmethod

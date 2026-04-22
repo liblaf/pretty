@@ -1,3 +1,5 @@
+"""Wrapped values used before tracing references."""
+
 from __future__ import annotations
 
 import abc
@@ -12,6 +14,8 @@ from ._context import TraceContext
 
 
 class WrappedChild(NamedTuple):
+    """Queued child plus the callback that should receive its traced result."""
+
     wrapped: Wrapped
     depth: int
     attach: Callable[[Traced], None]
@@ -19,5 +23,7 @@ class WrappedChild(NamedTuple):
 
 @attrs.define
 class Wrapped(abc.ABC):
+    """Interface implemented by wrapped nodes and items."""
+
     @abc.abstractmethod
     def trace(self, ctx: TraceContext) -> tuple[Iterable[WrappedChild], Traced]: ...
