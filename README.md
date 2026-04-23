@@ -4,14 +4,11 @@
 
 **[Explore the docs »](https://liblaf.github.io/pretty/)**
 
-[![Docs](https://github.com/liblaf/pretty/actions/workflows/python-docs.yaml/badge.svg)](https://github.com/liblaf/pretty/actions/workflows/python-docs.yaml)
-[![Tests](https://github.com/liblaf/pretty/actions/workflows/python-test.yaml/badge.svg)](https://github.com/liblaf/pretty/actions/workflows/python-test.yaml)
-[![Benchmarks](https://github.com/liblaf/pretty/actions/workflows/python-bench.yaml/badge.svg)](https://github.com/liblaf/pretty/actions/workflows/python-bench.yaml)
-[![PyPI Version](https://img.shields.io/pypi/v/liblaf-pretty?logo=pypi&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
+[![Codecov](https://codecov.io/gh/liblaf/pretty/graph/badge.svg)](https://codecov.io/gh/liblaf/pretty)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/liblaf-pretty?logo=python&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![PyPI - Types](https://img.shields.io/pypi/types/liblaf-pretty?logo=python&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
+[![PyPI Version](https://img.shields.io/pypi/v/liblaf-pretty?logo=pypi&logoColor=white)](https://pypi.org/project/liblaf-pretty/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 [API Reference](https://liblaf.github.io/pretty/reference/liblaf/pretty/) · [Changelog](https://github.com/liblaf/pretty/blob/main/CHANGELOG.md) · [Report Bug](https://github.com/liblaf/pretty/issues)
 
