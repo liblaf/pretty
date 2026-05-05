@@ -1,17 +1,30 @@
 # Pretty
 
-`liblaf.pretty` builds repr-like Rich renderables for Python objects. It is a
-good fit for interactive debugging, logs, doctests, and snapshots where you
-want readable output without giving up Rich styling or width-aware wrapping.
+`liblaf.pretty` formats Python objects as repr-like output. Use it when you
+want compact plain text for logs and snapshots, or a Rich renderable that wraps
+against the target console width.
 
-## Start With `pformat()`
+## Quick Start
+
+`pformat()` returns plain text:
+
+```python
+from liblaf.pretty import pformat
+
+print(pformat({"alpha": [1, 2, 3]}), end="")
+```
+
+```text
+{'alpha': [1, 2, 3]}
+```
+
+Use `plower()` when you need Rich to choose the layout later:
 
 ```python
 from rich.console import Console
 
-from liblaf.pretty import pformat
+from liblaf.pretty import plower
 
-rendered = pformat({"alpha": [1, 2, 3]})
 console = Console(
     width=12,
     color_system=None,
@@ -22,7 +35,7 @@ console = Console(
     highlight=False,
 )
 
-print(rendered.to_plain(console=console), end="")
+print(plower({"alpha": [1, 2, 3]}).to_plain(console=console), end="")
 ```
 
 ```text
@@ -34,47 +47,38 @@ print(rendered.to_plain(console=console), end="")
 }
 ```
 
-`pformat()` returns a Rich renderable, not a string. Use `console.print()` to
-render it normally, or `.to_plain(console=...)` when you want deterministic
-plain text for logs, tests, or snapshots.
-
-`.to_plain()` creates a safe default `Console` when you omit one, but for
-width-sensitive output it is still best to pass an explicit `Console(width=...)`.
-
-If you already have a Rich console, `pprint()` and `pp()` format and print in
-one step.
+If you already have a Rich console, `pprint()` and its alias `pp()` format and
+print in one call.
 
 ## Formatting Options
 
-The public formatting functions accept these keyword overrides:
+The public helpers accept the same keyword overrides:
 
 | Keyword | Default | Meaning |
 | --- | --- | --- |
-| `max_level` | `6` | Maximum nesting depth before values collapse to `...`. |
+| `max_level` | `6` | Maximum nesting depth before children collapse to `...`. |
 | `max_list` | `6` | Maximum visible items in list-like containers. |
 | `max_array` | `5` | Maximum array items forwarded to repr-style handlers. |
-| `max_dict` | `4` | Maximum visible key-value pairs in dictionaries. |
+| `max_dict` | `4` | Maximum visible key-value pairs in mappings. |
 | `max_string` | `30` | Maximum string repr length before truncation. |
 | `max_long` | `40` | Maximum integer repr length before truncation. |
 | `max_other` | `30` | Maximum repr length for other scalar values. |
 | `indent` | `"|   "` | Indentation used when layouts break across lines. |
-| `hide_defaults` | `True` | Hide default-valued fields from `fieldz` and `__rich_repr__` output. |
+| `hide_defaults` | `True` | Hide default-valued `fieldz` and `__rich_repr__` fields. |
 
-Each value can also come from `PRETTY_*` environment variables. For example,
+Each value can also come from a `PRETTY_*` environment variable. For example,
 `PRETTY_MAX_LIST=1` has the same effect as `pformat(obj, max_list=1)`.
 
-`indent` accepts `str` and [`Text`][rich.text.Text]. String values are parsed as
-Rich markup, and ANSI escapes are preserved.
-
-Width is chosen when Rich renders the result through a `Console`, not when you
-call `pformat()`.
+`indent` accepts plain text, Rich markup, ANSI-colored text, or
+`rich.text.Text`.
 
 ## Built In
 
-`liblaf.pretty` ships with a few integrations before you register anything:
+`liblaf.pretty` handles these cases without extra registration:
 
-- builtin containers such as `dict`, `list`, `tuple`, `set`, and `frozenset`
-- `fieldz`-compatible models, including common `attrs` patterns
+- scalar values through bounded repr output
+- `dict`, `list`, `tuple`, `set`, and `frozenset`
+- `fieldz`-compatible models, including common `attrs` classes
 - objects with `__rich_repr__`
 - fallback repr output for everything else
 
@@ -83,7 +87,6 @@ call `pformat()`.
 
 ```python
 import attrs
-from rich.console import Console
 
 from liblaf.pretty import pformat
 
@@ -94,10 +97,8 @@ class Point:
     y: int = 2
 
 
-console = Console(width=80, color_system=None, soft_wrap=True)
-
-print(pformat(Point()).to_plain(console=console))
-print(pformat(Point(), hide_defaults=False).to_plain(console=console), end="")
+print(pformat(Point()))
+print(pformat(Point(), hide_defaults=False), end="")
 ```
 
 ```text
@@ -111,54 +112,55 @@ same way as explicit positional items.
 
 ## Reference Tracking
 
-The formatter avoids infinite recursion and can annotate repeated references for
-referencable objects such as mappings, sets, frozensets, and custom containers.
-The first occurrence is annotated, and later occurrences render as
-`<Type @ hexid>` references.
+Referencable objects can be annotated on first appearance and replaced by
+`<Type @ hexid>` later. This keeps recursive and shared structures readable
+without losing identity information.
 
-Scalar values and sequence literals still render safely, but lists and tuples
-repeat their value instead of emitting a shared-reference marker.
+```python
+from liblaf.pretty import pformat
 
-## Environment Defaults
-
-Per-call keyword overrides are usually the clearest choice, but you can also
-set environment defaults with `PRETTY_*` variables:
-
-```bash
-export PRETTY_MAX_LIST=2
-export PRETTY_INDENT='[bold]>>[/] '
+child = {"x": 1}
+print(pformat({"left": child, "right": child}), end="")
 ```
 
-`PRETTY_INDENT` accepts the same plain-text, Rich-markup, ANSI-colored strings,
-and `Text` values as the `indent=` keyword argument.
+```text
+{
+|   'left': {'x': 1},  # <dict @ 7fe2adb72ec0>
+|   'right': <dict @ 7fe2adb72ec0>
+}
+```
 
-## Extending The Formatter
+Lists and tuples repeat their value instead of becoming reference tags. Custom
+containers are referencable by default, and custom leaves can opt in or out.
 
-The extension surface is intentionally small:
+## Custom Formatting
+
+Use the smallest hook that matches the object you want to format:
 
 - Implement `__pretty__(self, ctx)` when you own the class.
-- Use `register_type()` for a concrete type and its subclasses.
+- Use `register_type()` for a concrete class and its subclasses.
 - Use `register_func()` for structural matching.
 - Use `register_lazy()` for optional dependencies that should only activate
   after their module is already imported.
 
-`PrettyContext` is the builder object passed into custom formatters. It creates
-wrapped nodes, handles truncation helpers, and keeps identity stable so shared
-references can be detected later in the pipeline.
+`PrettyContext` gives custom formatters the builder helpers they usually need:
+`ctx.container()`, `ctx.leaf()`, `ctx.positional()`, `ctx.name_value()`, and
+`ctx.key_value()`.
 
-For a practical walkthrough, see [Custom Formatters](guides/custom-formatters.md).
+See [Custom Formatters](guides/custom-formatters.md) for examples.
 
 ## Pipeline
 
-The public API is small:
+The public path is:
 
-- `pformat()` builds a lowered Rich renderable.
-- `pprint()` and `pp()` print that renderable through a `Console`.
-- `PrettyContext` and the registration helpers power custom integrations.
+1. `plower()` wraps the object, traces shared references, and lowers the result.
+2. Rich renders the lowered object against a `Console`.
+3. `pformat()` captures that renderable as plain text with a safe default
+   console.
 
-The lower-level `stages.wrapped`, `stages.traced`, and `stages.lowered` modules
-are part of the internal pipeline and are mostly useful when you are extending
-the formatter itself.
+The `stages.wrapped`, `stages.traced`, and `stages.lowered` packages expose the
+pipeline pieces for maintainers and advanced integrations. Most users only need
+the public helpers and `PrettyContext`.
 
 See the [API reference](reference/liblaf/pretty/README.md) for signatures and
 source-backed docstrings.

@@ -45,6 +45,71 @@ def test_dunder_pretty_can_choose_a_custom_indent(render_plain: RenderText) -> N
     assert render_plain(Indented(), width=12) == "Indented(\n-> 1, 2, 3\n)"
 
 
+def test_dunder_pretty_can_disable_automatic_separators(
+    render_plain: RenderText,
+) -> None:
+    class CompactPair:
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            return ctx.container(
+                obj=self,
+                begin=Text("<", "repr.tag_start"),
+                children=[ctx.positional(1), ctx.positional(2)],
+                end=Text(">", "repr.tag_end"),
+                add_separators=False,
+            )
+
+    assert render_plain(CompactPair()) == "CompactPair<12>"
+
+
+def test_dunder_pretty_accepts_text_names(render_plain: RenderText) -> None:
+    class TextName:
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            return ctx.container(
+                obj=self,
+                begin=Text("(", "repr.tag_start"),
+                children=[ctx.name_value(Text("x", "repr.attrib_name"), 1)],
+                end=Text(")", "repr.tag_end"),
+            )
+
+    assert render_plain(TextName()) == "TextName(x=1)"
+
+
+def test_dunder_pretty_uses_default_empty_container_text(
+    render_plain: RenderText,
+) -> None:
+    class EmptyContainer:
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            return ctx.container(
+                obj=self,
+                begin=Text("<", "repr.tag_start"),
+                children=[],
+                end=Text(">", "repr.tag_end"),
+            )
+
+    assert render_plain(EmptyContainer()) == "EmptyContainer<>"
+
+
+def test_dunder_pretty_can_make_empty_containers_non_referencable(
+    render_plain: RenderText,
+) -> None:
+    class Token:
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            return ctx.container(
+                obj=self,
+                begin=Text("<", "repr.tag_start"),
+                children=[],
+                end=Text(">", "repr.tag_end"),
+                empty=Text("<void>", "repr.tag_name"),
+                referencable=False,
+            )
+
+    token = Token()
+
+    assert render_plain({"left": token, "right": token}, width=120) == (
+        "{'left': Token<void>, 'right': Token<void>}"
+    )
+
+
 def test_dunder_pretty_can_decline_and_fall_back_to_registered_handlers(
     render_plain: RenderText,
 ) -> None:
@@ -143,7 +208,7 @@ def test_register_lazy_waits_for_the_target_module(
             "__init__": lambda self, value: setattr(self, "value", value),
         },
     )
-    module.LazyValue = lazy_value_cls
+    setattr(module, class_name, lazy_value_cls)
     value = lazy_value_cls(7)
 
     @register_lazy(module_name, class_name)
@@ -160,3 +225,30 @@ def test_register_lazy_waits_for_the_target_module(
     monkeypatch.setitem(sys.modules, module_name, module)
 
     assert render_plain(value) == "LazyValue(7)"
+
+
+def test_same_class_names_are_disambiguated_by_module(
+    render_plain: RenderText,
+) -> None:
+    def pretty_empty(obj: object, ctx: PrettyContext) -> Any:
+        return ctx.container(
+            obj=obj,
+            begin=Text("(", "repr.tag_start"),
+            children=[],
+            end=Text(")", "repr.tag_end"),
+        )
+
+    first_cls = type(
+        "Thing",
+        (),
+        {"__module__": "first_module", "__pretty__": pretty_empty},
+    )
+    second_cls = type(
+        "Thing",
+        (),
+        {"__module__": "second_module", "__pretty__": pretty_empty},
+    )
+
+    assert render_plain([first_cls(), second_cls()], width=120) == (
+        "[first_module.Thing(), second_module.Thing()]"
+    )

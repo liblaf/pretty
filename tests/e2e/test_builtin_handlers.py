@@ -78,6 +78,20 @@ def test_rich_repr_supports_pairs_falsey_names_and_positional_items(
     )
 
 
+def test_rich_repr_hides_items_equal_to_their_default(
+    render_plain: RenderText,
+) -> None:
+    class RichDefaults:
+        def __rich_repr__(self) -> Any:
+            yield "hidden", 1, 1
+            yield "shown", 2, 1
+
+    assert render_plain(RichDefaults()) == "RichDefaults(shown=2)"
+    assert render_plain(RichDefaults(), hide_defaults=False) == (
+        "RichDefaults(hidden=1, shown=2)"
+    )
+
+
 def test_rich_repr_returning_none_falls_back_to_repr(render_plain: RenderText) -> None:
     class RichDecline:
         def __repr__(self) -> str:

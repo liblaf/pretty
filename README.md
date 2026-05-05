@@ -18,8 +18,8 @@
 
 ## ✨ Features
 
-- Width-aware pretty-printing that stays inside Rich's render pipeline instead
-  of flattening everything into a string too early.
+- Plain-text formatting for logs and snapshots, plus a Rich renderable path for
+  width-aware console output.
 - Built-in handling for common containers, `fieldz`-compatible models, and
   objects with `__rich_repr__`.
 - Shared-reference and cycle tracking for referencable objects such as
@@ -39,40 +39,21 @@ pip install liblaf-pretty
 
 ## 🧪 Quick Start
 
-Use `pformat()` when you want a Rich renderable that can be printed directly or
-captured as stable plain text:
+Use `pformat()` when you want stable plain text:
 
 ```python
-from rich.console import Console
-
 from liblaf.pretty import pformat
 
-rendered = pformat({"alpha": [1, 2, 3]})
-console = Console(
-    width=12,
-    color_system=None,
-    soft_wrap=True,
-    no_color=True,
-    markup=False,
-    emoji=False,
-    highlight=False,
-)
-
-print(rendered.to_plain(console=console), end="")
+print(pformat({"alpha": [1, 2, 3]}), end="")
 ```
 
 ```text
-{
-|   'alpha': [
-|   |   1,
-|   |   2, 3
-|   ]
-}
+{'alpha': [1, 2, 3]}
 ```
 
-`pformat()` returns a Rich renderable, so width is chosen later when Rich
-renders through a `Console`. If you already have a console, use `pprint()` or
-its alias `pp()` for the print-now path.
+Use `plower()` when you want a Rich renderable whose layout is chosen later by
+the target `Console`. If you already have a console, use `pprint()` or its alias
+`pp()` for the print-now path.
 
 ## 🎛️ Configuration
 

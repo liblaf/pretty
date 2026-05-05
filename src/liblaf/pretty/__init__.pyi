@@ -1,5 +1,5 @@
 from . import common, custom, literals, stages
-from ._api import pformat, pp, pprint
+from ._api import pformat, plower, pp, pprint
 from ._config import PrettyConfig, PrettyOptions, PrettyOverrides, config
 from .custom import (
     PrettyContext,
@@ -20,6 +20,7 @@ __all__ = [
     "custom",
     "literals",
     "pformat",
+    "plower",
     "pp",
     "pprint",
     "register_func",

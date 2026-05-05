@@ -1,7 +1,9 @@
 """Top-level formatting helpers.
 
 These functions are the public entry point into the wrapped, traced, and
-lowered pipeline that powers `liblaf.pretty`.
+lowered pipeline that powers `liblaf.pretty`. Use [`pformat`][liblaf.pretty.pformat]
+for captured plain text, [`plower`][liblaf.pretty.plower] for a Rich renderable,
+and [`pprint`][liblaf.pretty.pprint] for console output.
 """
 
 from typing import Any, Unpack
@@ -17,22 +19,36 @@ from liblaf.pretty.stages.wrapped import WrappedNode
 from ._config import PrettyOptions, PrettyOverrides, config
 
 
-def pformat(obj: Any, **kwargs: Unpack[PrettyOverrides]) -> LoweredNode:
-    """Build a width-aware Rich renderable for `obj`.
+def pformat(obj: Any, **kwargs: Unpack[PrettyOverrides]) -> str:
+    """Format `obj` as plain text.
 
-    `pformat()` resolves the active configuration, wraps `obj`, traces shared
-    and cyclic references, and lowers the result into a Rich renderable. The
-    returned object is rendered later by Rich, so the final line breaks still
-    depend on the target console width.
+    This helper lowers the object and captures the Rich renderable with a safe
+    default console. Use [`plower`][liblaf.pretty.plower] when the final layout
+    should depend on a specific Rich console width.
 
     Args:
         obj: Object to format.
-        **kwargs: Per-call overrides layered on top of
-            [`config`][liblaf.pretty.config].
+        **kwargs: Per-call overrides merged with [`config`][liblaf.pretty.config].
 
     Returns:
-        A lowered renderable that can be passed to `console.print(...)` or converted
-        to deterministic plain text with `to_plain(console=...)`.
+        Plain-text repr-like output.
+    """
+    lowered: LoweredNode = plower(obj, **kwargs)
+    return lowered.to_plain()
+
+
+def plower(obj: Any, **kwargs: Unpack[PrettyOverrides]) -> LoweredNode:
+    """Build a Rich renderable for `obj`.
+
+    The returned lowered node chooses between flat and broken layouts when Rich
+    renders it through a `Console`.
+
+    Args:
+        obj: Object to format.
+        **kwargs: Per-call overrides merged with [`config`][liblaf.pretty.config].
+
+    Returns:
+        A lowered Rich renderable.
     """
     options: PrettyOptions = PrettyOptions(**{**config.to_dict(), **kwargs})
     pretty_ctx: PrettyContext = PrettyContext(options=options)
@@ -48,17 +64,17 @@ def pprint(
 ) -> None:
     """Format `obj` and print it through a Rich console.
 
-    This is the side-effecting companion to [`pformat`][liblaf.pretty.pformat].
+    This is the side-effecting companion to [`plower`][liblaf.pretty.plower].
 
     Args:
         obj: Object to format.
         console: Console to render into. When omitted, the active global Rich console
             is used.
-        **kwargs: Per-call overrides forwarded to [`pformat`][liblaf.pretty.pformat].
+        **kwargs: Per-call overrides merged with [`config`][liblaf.pretty.config].
     """
     if console is None:
         console: Console = rich.get_console()
-    lowered: LoweredNode = pformat(obj, **kwargs)
+    lowered: LoweredNode = plower(obj, **kwargs)
     console.print(lowered)
 
 

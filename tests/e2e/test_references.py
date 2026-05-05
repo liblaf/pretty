@@ -21,6 +21,23 @@ def test_shared_dict_references_are_annotated(
     )
 
 
+def test_shared_dict_anchor_prefers_shallowest_reachable_path(
+    render_plain: RenderText,
+    normalize_refs: NormalizeRefs,
+) -> None:
+    child = {"x": 1}
+    obj = {"deep": {"child": child}, "shallow": child}
+
+    rendered = normalize_refs(render_plain(obj, width=120))
+
+    assert rendered == (
+        "{\n"
+        "|   'deep': {'child': <dict @ <id>>},\n"
+        "|   'shallow': {'x': 1}  # <dict @ <id>>\n"
+        "}"
+    )
+
+
 def test_shared_frozenset_references_are_annotated(
     render_plain: RenderText,
     normalize_refs: NormalizeRefs,

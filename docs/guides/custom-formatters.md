@@ -87,7 +87,7 @@ def _pretty_point(obj: Point, ctx):
     )
 
 
-print(pformat(Point(1, 2)).to_plain(), end="")
+print(pformat(Point(1, 2)), end="")
 ```
 
 ```text

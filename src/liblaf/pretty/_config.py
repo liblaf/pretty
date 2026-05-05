@@ -31,15 +31,15 @@ class PrettyOverrides(TypedDict, total=False):
             output.
     """
 
-    max_level: int
-    max_list: int
+    hide_defaults: bool
+    indent: str | Text
     max_array: int
     max_dict: int
-    max_string: int
+    max_level: int
+    max_list: int
     max_long: int
     max_other: int
-    indent: str | Text
-    hide_defaults: bool
+    max_string: int
 
 
 def _as_text(value: str | Text) -> Text:
@@ -76,15 +76,15 @@ class PrettyOptions:
             output.
     """
 
-    max_level: int
-    max_list: int
+    hide_defaults: bool
+    indent: Text = attrs.field(converter=_as_text)
     max_array: int
     max_dict: int
-    max_string: int
+    max_level: int
+    max_list: int
     max_long: int
     max_other: int
-    indent: Text = attrs.field(converter=_as_text)
-    hide_defaults: bool
+    max_string: int
 
 
 def field_text(*, default: Text) -> conf.Field[Text]:
@@ -107,15 +107,15 @@ class PrettyConfig(conf.BaseConfig):
 
     env_prefix: ClassVar[str] = "PRETTY_"
 
-    max_level: conf.Field[int] = conf.field_int(default=6)
-    max_list: conf.Field[int] = conf.field_int(default=6)
+    hide_defaults: conf.Field[bool] = conf.field_bool(default=True)
+    indent: conf.Field[Text] = field_text(default=INDENT)
     max_array: conf.Field[int] = conf.field_int(default=5)
     max_dict: conf.Field[int] = conf.field_int(default=4)
-    max_string: conf.Field[int] = conf.field_int(default=30)
+    max_level: conf.Field[int] = conf.field_int(default=6)
+    max_list: conf.Field[int] = conf.field_int(default=6)
     max_long: conf.Field[int] = conf.field_int(default=40)
     max_other: conf.Field[int] = conf.field_int(default=30)
-    indent: conf.Field[Text] = field_text(default=INDENT)
-    hide_defaults: conf.Field[bool] = conf.field_bool(default=True)
+    max_string: conf.Field[int] = conf.field_int(default=30)
 
     def dump(self) -> PrettyOptions:
         """Materialize the current configuration as [`PrettyOptions`][liblaf.pretty.PrettyOptions].

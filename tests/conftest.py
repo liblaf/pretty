@@ -3,11 +3,12 @@ from __future__ import annotations
 import io
 import re
 from collections.abc import Callable
+from typing import Unpack
 
 import pytest
 from rich.console import Console
 
-from liblaf.pretty import pformat, pprint
+from liblaf.pretty import PrettyOverrides, plower, pprint
 
 type NormalizeRefs = Callable[[str], str]
 type RenderText = Callable[..., str]
@@ -36,15 +37,19 @@ def normalize_refs() -> NormalizeRefs:
 
 @pytest.fixture
 def render_plain() -> RenderText:
-    def _render_plain(obj: object, /, *, width: int = 80, **kwargs: object) -> str:
-        return pformat(obj, **kwargs).to_plain(console=make_console(width=width))
+    def _render_plain(
+        obj: object, /, *, width: int = 80, **kwargs: Unpack[PrettyOverrides]
+    ) -> str:
+        return plower(obj, **kwargs).to_plain(console=make_console(width=width))
 
     return _render_plain
 
 
 @pytest.fixture
 def render_pprint() -> RenderText:
-    def _render_pprint(obj: object, /, *, width: int = 80, **kwargs: object) -> str:
+    def _render_pprint(
+        obj: object, /, *, width: int = 80, **kwargs: Unpack[PrettyOverrides]
+    ) -> str:
         buffer = io.StringIO()
         pprint(obj, console=make_console(width=width, file=buffer), **kwargs)
         return buffer.getvalue()

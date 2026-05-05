@@ -21,6 +21,9 @@ class Lowered(abc.ABC):
     later, so line wrapping still depends on the target console width.
     """
 
+    def __str__(self) -> str:
+        return self.to_plain()
+
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
