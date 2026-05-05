@@ -22,6 +22,8 @@
   width-aware console output.
 - Built-in handling for common containers, `fieldz`-compatible models, and
   objects with `__rich_repr__`.
+- Lazy summaries for NumPy, JAX, Torch, and Warp arrays when those libraries are
+  already imported.
 - Shared-reference and cycle tracking for referencable objects such as
   mappings, sets, frozensets, and custom containers.
 - A small customization surface through `__pretty__()`, `register_type()`,
@@ -73,6 +75,26 @@ export PRETTY_INDENT='[bold]>>[/] '
 
 `indent` accepts plain text, Rich markup, ANSI-colored strings, or
 `rich.text.Text`.
+
+## 🔢 Arrays
+
+Array libraries are optional. Once NumPy, JAX, Torch, or Warp is already loaded,
+`liblaf.pretty` formats small arrays as compact dtype-and-shape summaries:
+
+```python
+import numpy as np
+
+from liblaf.pretty import pformat
+
+print(pformat(np.zeros((2, 3), dtype=np.float32)), end="")
+```
+
+```text
+f32[2,3](numpy)
+```
+
+If any dimension is larger than `max_array`, the formatter falls back to the
+object's normal repr instead of importing or traversing large values.
 
 ## 🔁 Shared References
 

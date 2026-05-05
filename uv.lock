@@ -1008,16 +1008,16 @@ wheels = [
 
 [[package]]
 name = "liblaf-conf"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lazy-loader" },
     { name = "pydantic" },
     { name = "pydantic-extra-types", extra = ["pendulum"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/60/d4ca967489dcfd5f11577c9263d4bad358ced2a514569702edf9d02fc39c/liblaf_conf-0.1.1.tar.gz", hash = "sha256:9d639afbe9087d08d620b54521ed46cf58426deca2ac341c6666d38876199b35", size = 10961, upload-time = "2026-04-06T05:22:56.309Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/6c/8554064e2a0c4fb24928fd93dae15cb130f186afa6a5282e7efe106642a0/liblaf_conf-0.1.2.tar.gz", hash = "sha256:6914b38717af82731b10c12c27bd0df66a06ed5624c4ca2541ca0c589bccab37", size = 12056, upload-time = "2026-05-05T08:25:23.523Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/19/e2/c996a51f96dbf4d571f810a22da3a2170c763868af15cb13c6f647fa1070/liblaf_conf-0.1.1-py3-none-any.whl", hash = "sha256:bac62566ca0ba320c53d616dae486bb509c4b280e1c5b186483da8d250cab7fd", size = 15073, upload-time = "2026-04-06T05:22:55.176Z" },
+    { url = "https://files.pythonhosted.org/packages/76/25/1d96d12fc79a38938b9f193b66e8d40f920492cf17c085b3d59bf3b3a4fd/liblaf_conf-0.1.2-py3-none-any.whl", hash = "sha256:95d04fd766c2307ddc85c39dc77cb550dc919e0f20712aedc1bd17d573ef57d2", size = 16464, upload-time = "2026-05-05T08:25:22.043Z" },
 ]
 
 [[package]]
@@ -1105,7 +1105,7 @@ build = [
 ]
 dev = [
     { name = "cupy-cuda13x", specifier = ">=14" },
-    { name = "jax", specifier = ">=0.9" },
+    { name = "jax", specifier = ">=0.10" },
     { name = "numpy", specifier = ">=2" },
     { name = "torch", specifier = ">=2" },
     { name = "warp-lang", specifier = ">=1" },
@@ -1129,7 +1129,7 @@ nox = [
 ]
 test = [
     { name = "cupy-cuda13x", specifier = ">=14" },
-    { name = "jax", specifier = ">=0.9" },
+    { name = "jax", specifier = ">=0.10" },
     { name = "numpy", specifier = ">=2" },
     { name = "pytest", specifier = ">=9" },
     { name = "pytest-cov", specifier = ">=7" },

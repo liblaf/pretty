@@ -5,13 +5,14 @@ Import [`PrettyContext`][liblaf.pretty.custom.PrettyContext] together with
 [`register_func`][liblaf.pretty.custom.register_func], or
 [`register_lazy`][liblaf.pretty.custom.register_lazy] when you want to format a
 new kind of object. Importing this module also loads the built-in handlers for
-core containers, `fieldz`-compatible models, and `__rich_repr__` objects.
+core containers, optional array summaries, `fieldz`-compatible models, and
+`__rich_repr__` objects.
 """
 
 from ._context import PrettyContext
 
 # register prelude handlers
-from ._prelude import _container, _fieldz, _scalar  # noqa: F401
+from ._prelude import _array, _container, _fieldz, _scalar  # noqa: F401
 from ._registry import (
     PrettyHandler,
     PrettyRegistry,

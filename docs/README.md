@@ -78,6 +78,8 @@ Each value can also come from a `PRETTY_*` environment variable. For example,
 
 - scalar values through bounded repr output
 - `dict`, `list`, `tuple`, `set`, and `frozenset`
+- compact dtype-and-shape summaries for imported NumPy, JAX, Torch, and Warp
+  arrays
 - `fieldz`-compatible models, including common `attrs` classes
 - objects with `__rich_repr__`
 - fallback repr output for everything else
@@ -109,6 +111,24 @@ Point(x=1, y=2)
 Objects with `__rich_repr__` can mix named and positional items. Falsey names
 fall back to positional output, so `("", value)` and `(None, value)` render the
 same way as explicit positional items.
+
+Array integrations are lazy. `liblaf.pretty` does not import optional array
+libraries, but once one is present in `sys.modules`, arrays whose dimensions are
+all within `max_array` render as compact summaries:
+
+```python
+import numpy as np
+
+from liblaf.pretty import pformat
+
+print(pformat(np.zeros((2, 3), dtype=np.float32)), end="")
+```
+
+```text
+f32[2,3](numpy)
+```
+
+Arrays with a dimension larger than `max_array` fall back to repr-style output.
 
 ## Reference Tracking
 

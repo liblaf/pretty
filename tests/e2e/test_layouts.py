@@ -110,6 +110,25 @@ def test_multiline_mapping_keys_render_before_flat_values(
     )
 
 
+def test_multiline_mapping_keys_keep_shared_value_annotations_on_value_line(
+    render_plain: RenderText,
+    normalize_refs: NormalizeRefs,
+) -> None:
+    value = InlineValue()
+
+    rendered = normalize_refs(
+        render_plain({MultilineValue(): value, "after": value}, width=120)
+    )
+
+    assert rendered == (
+        "{\n"
+        "|   alpha\n"
+        "|   beta: leaf,  # <InlineValue @ <id>>\n"
+        "|   'after': <InlineValue @ <id>>\n"
+        "}"
+    )
+
+
 def test_multiline_mapping_keys_and_values_render_around_the_separator(
     render_plain: RenderText,
 ) -> None:

@@ -15,7 +15,7 @@ import attrs
 from rich.text import Text
 
 from liblaf.pretty.common import TRUNCATED, ObjectIdentifier
-from liblaf.pretty.literals import COMMA, SPACE
+from liblaf.pretty.literals import COLON, COMMA, EQUAL, SPACE
 from liblaf.pretty.stages.traced import TracedNode
 from liblaf.pretty.stages.wrapped import (
     TraceContext,
@@ -135,13 +135,17 @@ class PrettyContext(TraceContext):
 
     # ------------------------------ WrappedItem ----------------------------- #
 
-    def key_value(self, key: Any, value: Any) -> WrappedItem:
+    def key_value(self, key: Any, value: Any, sep: Text = COLON) -> WrappedItem:
         """Build a `key: value` item or an ellipsis placeholder when truncated."""
         if key is TRUNCATED or value is TRUNCATED:
             return self.ellipsis_item()
-        return WrappedKeyValueItem(key=self.wrap_lazy(key), value=self.wrap_lazy(value))
+        return WrappedKeyValueItem(
+            key=self.wrap_lazy(key), sep=sep, value=self.wrap_lazy(value)
+        )
 
-    def name_value(self, name: str | Text | None, value: Any) -> WrappedItem:
+    def name_value(
+        self, name: str | Text | None, value: Any, sep: Text = EQUAL
+    ) -> WrappedItem:
         """Build a repr-style `name=value` item.
 
         Falsey names fall back to [`positional`][liblaf.pretty.custom.PrettyContext.positional].
@@ -150,7 +154,7 @@ class PrettyContext(TraceContext):
             return self.positional(value)
         if isinstance(name, str):
             name = Text(name, "repr.attrib_name")
-        return WrappedNameValueItem(name=name, value=self.wrap_lazy(value))
+        return WrappedNameValueItem(name=name, sep=sep, value=self.wrap_lazy(value))
 
     def positional(self, value: Any) -> WrappedItem:
         """Build a positional item or an ellipsis placeholder when truncated."""

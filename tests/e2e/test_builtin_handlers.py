@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 import attrs
+import pytest
 
 type RenderText = Callable[..., str]
 
@@ -23,6 +24,41 @@ def test_builtin_scalar_and_container_handlers_render_python_like_output(
     assert render_plain(...) == "..."
     assert render_plain("abcdefghijklmnopqrstuvwxyz0123456789") == (
         "'abcdefghijkl...xyz0123456789'"
+    )
+
+
+def test_reprlib_limits_apply_to_fallback_scalars(render_plain: RenderText) -> None:
+    assert render_plain(12345678901234567890, max_long=12) == "1234...67890"
+    assert (
+        render_plain("abcdefghijklmnopqrstuvwxyz0123456789", max_string=20)
+        == "'abcdefg...23456789'"
+    )
+
+
+def test_numpy_arrays_render_as_shape_and_dtype_summaries(
+    render_plain: RenderText,
+) -> None:
+    np = pytest.importorskip("numpy")
+
+    assert render_plain(np.zeros((2, 3), dtype=np.float32)) == "f32[2,3](numpy)"
+    assert render_plain(np.array([1, 2, 3], dtype=np.int64)) == "i64[3](numpy)"
+
+
+def test_array_summaries_fall_back_when_dimensions_exceed_max_array(
+    render_plain: RenderText,
+) -> None:
+    np = pytest.importorskip("numpy")
+
+    assert render_plain(np.arange(6), max_array=5) == "array([0, 1, 2, 3, 4, 5])"
+
+
+def test_torch_tensors_render_as_shape_and_dtype_summaries(
+    render_plain: RenderText,
+) -> None:
+    torch = pytest.importorskip("torch")
+
+    assert render_plain(torch.zeros((2, 3), dtype=torch.float32)) == (
+        "torch.f32[2,3](torch)"
     )
 
 

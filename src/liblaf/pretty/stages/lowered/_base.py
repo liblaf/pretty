@@ -54,6 +54,7 @@ class Lowered(abc.ABC):
             console: Console = Console(
                 color_system=None,
                 soft_wrap=True,
+                width=88,
                 no_color=True,
                 markup=False,
                 emoji=False,

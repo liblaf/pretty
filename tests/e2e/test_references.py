@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-import pytest
-
 type NormalizeRefs = Callable[[str], str]
 type RenderText = Callable[..., str]
 
@@ -54,18 +52,24 @@ def test_shared_frozenset_references_are_annotated(
     )
 
 
-@pytest.mark.parametrize(
-    ("child", "expected"),
-    [
-        pytest.param([1, 2], "[1, 2]", id="list"),
-        pytest.param((1, 2), "(1, 2)", id="tuple"),
-    ],
-)
-def test_non_referencable_sequences_render_their_value_each_time(
-    child: object,
-    expected: str,
+def test_shared_list_references_are_annotated(
+    render_plain: RenderText,
+    normalize_refs: NormalizeRefs,
+) -> None:
+    child = [1, 2]
+
+    rendered = normalize_refs(render_plain({"left": child, "right": child}, width=120))
+
+    assert rendered == (
+        "{\n|   'left': [1, 2],  # <list @ <id>>\n|   'right': <list @ <id>>\n}"
+    )
+
+
+def test_non_referencable_tuple_renders_its_value_each_time(
     render_plain: RenderText,
 ) -> None:
+    child = (1, 2)
+
     rendered = render_plain({"left": child, "right": child}, width=120)
 
-    assert rendered == f"{{'left': {expected}, 'right': {expected}}}"
+    assert rendered == "{'left': (1, 2), 'right': (1, 2)}"

@@ -46,7 +46,7 @@ dynamic = ["version"]
 "Source Code" = "https://github.com/liblaf/pretty"
 
 [dependency-groups]
-dev = ["cupy-cuda13x>=14", "jax>=0.9", "numpy>=2", "torch>=2", "warp-lang>=1"]
+dev = ["cupy-cuda13x>=14", "jax>=0.10", "numpy>=2", "torch>=2", "warp-lang>=1"]
 build = ["check-wheel-contents>=0.6", "hatch>=1", "twine>=6"]
 docs = [
   "griffe-fieldz>=0.5",

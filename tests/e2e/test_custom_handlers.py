@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from rich.text import Text
 
-from liblaf.pretty import register_func, register_lazy, register_type
+from liblaf.pretty import plower, register_func, register_lazy, register_type
 from liblaf.pretty.custom import PrettyContext
 
 type RenderText = Callable[..., str]
@@ -108,6 +108,66 @@ def test_dunder_pretty_can_make_empty_containers_non_referencable(
     assert render_plain({"left": token, "right": token}, width=120) == (
         "{'left': Token<void>, 'right': Token<void>}"
     )
+
+
+def test_dunder_pretty_reuses_wrapped_node_for_repeated_objects(
+    render_plain: RenderText,
+    normalize_refs: Callable[[str], str],
+) -> None:
+    class CountingValue:
+        calls = 0
+
+        def __init__(self, value: int) -> None:
+            self.value = value
+
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            type(self).calls += 1
+            return ctx.container(
+                obj=self,
+                begin=Text("(", "repr.tag_start"),
+                children=[ctx.name_value("value", self.value)],
+                end=Text(")", "repr.tag_end"),
+            )
+
+    value = CountingValue(7)
+
+    rendered = normalize_refs(render_plain({"left": value, "right": value}, width=120))
+
+    assert CountingValue.calls == 1
+    assert rendered == (
+        "{\n"
+        "|   'left': CountingValue(value=7),  # <CountingValue @ <id>>\n"
+        "|   'right': <CountingValue @ <id>>\n"
+        "}"
+    )
+
+
+def test_dunder_pretty_can_leave_children_lazy_when_separators_are_manual() -> None:
+    events: list[str] = []
+
+    class LazyChildren:
+        def __pretty__(self, ctx: PrettyContext) -> Any:
+            events.append("build")
+
+            def children() -> Any:
+                events.append("iterate")
+                yield ctx.positional(1)
+
+            wrapped = ctx.container(
+                obj=self,
+                begin=Text("<", "repr.tag_start"),
+                children=children(),
+                end=Text(">", "repr.tag_end"),
+                add_separators=False,
+                referencable=False,
+            )
+            events.append("return")
+            return wrapped
+
+    lowered = plower(LazyChildren())
+
+    assert events == ["build", "return", "iterate"]
+    assert lowered.to_plain() == "LazyChildren<1>"
 
 
 def test_dunder_pretty_can_decline_and_fall_back_to_registered_handlers(

@@ -18,9 +18,9 @@ Use the smallest hook that matches the problem:
 - `register_lazy()` keeps optional integrations cheap because it waits for the
   dependency to be imported elsewhere.
 
-Builtin handlers already cover core containers, `fieldz`-compatible models, and
-`__rich_repr__`, so reach for a custom hook only when the default behavior is
-not enough.
+Builtin handlers already cover core containers, imported array libraries,
+`fieldz`-compatible models, and `__rich_repr__`, so reach for a custom hook only
+when the default behavior is not enough.
 
 ## Resolution Order
 
@@ -175,6 +175,9 @@ def _pretty_ndarray(obj, ctx):
 
 Once `numpy` is present in `sys.modules`, the handler is resolved and cached for
 future formatting calls.
+
+The built-in NumPy, JAX, Torch, and Warp formatters use the same pattern: they
+stay dormant until the target package is imported elsewhere.
 
 ## When To Mark Things Referencable
 
