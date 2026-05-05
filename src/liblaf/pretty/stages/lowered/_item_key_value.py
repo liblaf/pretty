@@ -2,11 +2,13 @@
 
 import functools
 from collections.abc import Generator
-from typing import cast, override
+from typing import override
 
 import attrs
 from rich.console import RenderResult
 from rich.text import Text
+
+from liblaf.pretty.literals import COMMENT_GAP
 
 from ._context import CompileContext
 from ._item_base import LoweredItem
@@ -55,11 +57,13 @@ class Inline(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
+        assert self.item.key.width_flat is not None
+        assert self.item.value.width_flat is not None
         return (
             self.item.prefix.cell_len
-            + cast("int", self.item.key.width_flat)
+            + self.item.key.width_flat
             + self.item.sep.cell_len
-            + cast("int", self.item.value.width_flat)
+            + self.item.value.width_flat
             + self.item.suffix.cell_len
             <= ctx.remaining_width
         )
@@ -89,31 +93,37 @@ class FlatFlat(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return (
-            cast("int", self.item.key.width_flat)
+        assert self.item.key.width_flat is not None
+        assert self.item.value.width_flat is not None
+        width: int = (
+            self.item.key.width_flat
             + self.item.sep.cell_len
-            + cast("int", self.item.value.width_flat)
-            + self.item.suffix.cell_len
-            + self.item.value.annotation.cell_len
-            <= ctx.remaining_width
+            + self.item.value.width_flat
         )
+        if self.item.value.annotation:
+            width += COMMENT_GAP.cell_len + self.item.value.annotation.cell_len
+        width += self.item.suffix.cell_len
+        return width <= ctx.remaining_width
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
         yield from ctx.ensure_newline()
+        if self.item.key.annotation:
+            yield from ctx.render(self.item.key.annotation)
+            yield from ctx.ensure_newline()
         yield from self.item.key.render_flat(ctx, annotation=False)
         yield from ctx.render(self.item.sep)
         yield from self.item.value.render_flat(ctx, annotation=False)
         yield from ctx.render(self.item.suffix)
         if self.item.value.annotation:
-            yield from ctx.render(self.item.value.annotation)
+            yield from ctx.render(COMMENT_GAP, self.item.value.annotation)
+        if self.item.key.annotation or self.item.value.annotation:
             yield from ctx.ensure_newline()
 
     @override
     def supports(self, ctx: CompileContext) -> bool:
         return (
-            not self.item.key.annotation
-            and self.item.key.width_flat is not None
+            self.item.key.width_flat is not None
             and self.item.value.width_flat is not None
         )
 
@@ -124,17 +134,23 @@ class FlatBreak(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return (
-            cast("int", self.item.key.width_flat)
+        assert self.item.key.width_flat is not None
+        assert self.item.value.width_break_begin is not None
+        width: int = (
+            self.item.key.width_flat
             + self.item.sep.cell_len
-            + cast("int", self.item.value.width_break_begin)
-            + self.item.value.annotation.cell_len
-            <= ctx.remaining_width
+            + self.item.value.width_break_begin
         )
+        if self.item.value.annotation:
+            width += COMMENT_GAP.cell_len + self.item.value.annotation.cell_len
+        return width <= ctx.remaining_width
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
         yield from ctx.ensure_newline()
+        if self.item.key.annotation:
+            yield from ctx.render(self.item.key.annotation)
+            yield from ctx.ensure_newline()
         yield from self.item.key.render_flat(ctx, annotation=False)
         yield from ctx.render(self.item.sep)
         yield from self.item.value.render_break(ctx, annotation=True)
@@ -144,8 +160,7 @@ class FlatBreak(Layout):
     @override
     def supports(self, ctx: CompileContext) -> bool:
         return (
-            not self.item.key.annotation
-            and self.item.key.width_flat is not None
+            self.item.key.width_flat is not None
             and self.item.value.width_break_begin is not None
         )
 
@@ -156,14 +171,17 @@ class BreakFlat(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return (
-            cast("int", self.item.key.width_break_end)
+        assert self.item.key.width_break_end is not None
+        assert self.item.value.width_flat is not None
+        width: int = (
+            self.item.key.width_break_end
             + self.item.sep.cell_len
-            + cast("int", self.item.value.width_flat)
-            + self.item.suffix.cell_len
-            + self.item.value.annotation.cell_len
-            <= ctx.remaining_width
+            + self.item.value.width_flat
         )
+        if self.item.value.annotation:
+            width += COMMENT_GAP.cell_len + self.item.value.annotation.cell_len
+        width += self.item.suffix.cell_len
+        return width <= ctx.remaining_width
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
@@ -173,7 +191,7 @@ class BreakFlat(Layout):
         yield from self.item.value.render_flat(ctx, annotation=False)
         yield from ctx.render(self.item.suffix)
         if self.item.value.annotation:
-            yield from ctx.render(self.item.value.annotation)
+            yield from ctx.render(COMMENT_GAP, self.item.value.annotation)
         yield from ctx.ensure_newline()
 
     @override

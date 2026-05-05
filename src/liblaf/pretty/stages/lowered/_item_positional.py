@@ -2,13 +2,13 @@
 
 import functools
 from collections.abc import Generator
-from typing import Self, cast, override
+from typing import Self, override
 
 import attrs
 from rich.console import RenderResult
 from rich.text import Text
 
-from liblaf.pretty.literals import EMPTY
+from liblaf.pretty.literals import COMMENT_GAP, EMPTY
 
 from ._context import CompileContext
 from ._item_base import LoweredItem
@@ -47,9 +47,10 @@ class Inline(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
+        assert self.item.value.width_flat is not None
         return (
             self.item.prefix.cell_len
-            + cast("int", self.item.value.width_flat)
+            + self.item.value.width_flat
             + self.item.suffix.cell_len
             <= ctx.remaining_width
         )
@@ -71,12 +72,11 @@ class Flat(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return (
-            cast("int", self.item.value.width_flat)
-            + self.item.suffix.cell_len
-            + self.item.value.annotation.cell_len
-            <= ctx.remaining_width
-        )
+        assert self.item.value.width_flat is not None
+        width: int = self.item.value.width_flat + self.item.suffix.cell_len
+        if self.item.value.annotation:
+            width += COMMENT_GAP.cell_len + self.item.value.annotation.cell_len
+        return width <= ctx.remaining_width
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
@@ -84,7 +84,7 @@ class Flat(Layout):
         yield from self.item.value.render_flat(ctx, annotation=False)
         yield from ctx.render(self.item.suffix)
         if self.item.value.annotation:
-            yield from ctx.render(self.item.value.annotation)
+            yield from ctx.render(COMMENT_GAP, self.item.value.annotation)
             yield from ctx.ensure_newline()
 
     @override

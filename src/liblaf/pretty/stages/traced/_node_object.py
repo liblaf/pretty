@@ -23,4 +23,4 @@ class TracedObject(TracedNode):
             return EMPTY
         assert self.identifier.cls is not None
         typename: str = ctx.get_ref_typename(self.identifier.cls)
-        return Text(f"  # <{typename} @ {self.identifier.id_:x}>", "dim")
+        return Text(f"# <{typename} @ {self.identifier.id_:x}>", "dim")

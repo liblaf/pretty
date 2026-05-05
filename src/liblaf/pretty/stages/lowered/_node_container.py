@@ -2,11 +2,13 @@
 
 import functools
 from collections.abc import Generator
-from typing import cast, override
+from typing import override
 
 import attrs
 from rich.console import RenderResult
 from rich.text import Text
+
+from liblaf.pretty.literals import COMMENT_GAP
 
 from ._context import CompileContext
 from ._item_base import LoweredItem
@@ -37,7 +39,7 @@ class LoweredContainer(LoweredNode):
             yield from item.render(ctx)
         yield from ctx.render(self.end)
         if annotation and self.annotation:
-            yield from ctx.render(self.annotation)
+            yield from ctx.render(COMMENT_GAP, self.annotation)
 
     @override
     def render_break(
@@ -45,7 +47,7 @@ class LoweredContainer(LoweredNode):
     ) -> RenderResult:
         yield from ctx.render(self.begin)
         if annotation and self.annotation:
-            yield from ctx.render(self.annotation)
+            yield from ctx.render(COMMENT_GAP, self.annotation)
         yield from ctx.ensure_newline()
         with ctx.indent(self.indent):
             for item in self.children:
@@ -81,10 +83,11 @@ class ContainerFlat(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return (
-            cast("int", self.node.width_flat) + self.node.annotation.cell_len
-            <= ctx.remaining_width
-        )
+        assert self.node.width_flat is not None
+        width: int = self.node.width_flat
+        if self.node.annotation:
+            width += COMMENT_GAP.cell_len + self.node.annotation.cell_len
+        return width <= ctx.remaining_width
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
@@ -101,10 +104,7 @@ class ContainerBreak(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return (
-            self.node.width_break_begin + self.node.annotation.cell_len
-            <= ctx.remaining_width
-        )
+        return True  # fallback
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:

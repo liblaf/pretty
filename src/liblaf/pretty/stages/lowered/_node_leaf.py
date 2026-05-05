@@ -2,14 +2,14 @@
 
 import functools
 from collections.abc import Generator
-from typing import Self, cast, override
+from typing import Self, override
 
 import attrs
 from rich.console import RenderResult
 from rich.containers import Lines
 from rich.text import Text
 
-from liblaf.pretty.literals import ELLIPSIS
+from liblaf.pretty.literals import COMMENT_GAP, ELLIPSIS
 
 from ._context import CompileContext
 from ._layout import Layout
@@ -32,8 +32,10 @@ class LoweredLeaf(LoweredNode):
 
     @override
     def layouts(self) -> Generator[Layout]:
-        yield LeafFlat(self)
-        yield LeafBreak(self)
+        if len(self.lines) == 1:
+            yield LeafFlat(self)
+        else:
+            yield LeafBreak(self)
 
     @override
     def render_flat(
@@ -42,19 +44,18 @@ class LoweredLeaf(LoweredNode):
         assert len(self.lines) == 1
         yield from ctx.render(self.value)
         if annotation and self.annotation:
-            yield from ctx.render(self.annotation)
+            yield from ctx.render(COMMENT_GAP, self.annotation)
 
     @override
     def render_break(
         self, ctx: CompileContext, *, annotation: bool = True
     ) -> RenderResult:
-        if len(self.lines) == 1:
-            yield from self.render_flat(ctx, annotation=annotation)
-        elif annotation and self.annotation:
+        assert len(self.lines) > 1
+        if annotation and self.annotation:
             first_line: Text = self.lines[0].copy()
             first_line.rstrip()
             yield from ctx.render(first_line)
-            yield from ctx.render(self.annotation)
+            yield from ctx.render(COMMENT_GAP, self.annotation)
             yield from ctx.ensure_newline()
             for line in self.lines[1:]:
                 yield from ctx.render(line)
@@ -89,7 +90,7 @@ class LeafFlat(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return cast("int", self.node.width_flat) <= ctx.remaining_width
+        return True  # fallback
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
@@ -97,7 +98,7 @@ class LeafFlat(Layout):
 
     @override
     def supports(self, ctx: CompileContext) -> bool:
-        return self.node.width_flat is not None
+        return len(self.node.lines) == 1
 
 
 @attrs.frozen
@@ -106,7 +107,7 @@ class LeafBreak(Layout):
 
     @override
     def fits(self, ctx: CompileContext) -> bool:
-        return cast("int", self.node.width_break_begin) <= ctx.remaining_width
+        return True  # fallback
 
     @override
     def render(self, ctx: CompileContext) -> RenderResult:
@@ -114,4 +115,4 @@ class LeafBreak(Layout):
 
     @override
     def supports(self, ctx: CompileContext) -> bool:
-        return self.node.width_break_begin is not None
+        return len(self.node.lines) > 1
