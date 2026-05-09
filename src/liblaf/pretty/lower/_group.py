@@ -1,41 +1,44 @@
-from collections.abc import Generator, Sequence
-from typing import override
+import functools
+from collections.abc import Sequence
+from typing import Self, override
 
 import attrs
+from rich.text import Text
 
-from liblaf.pretty.compile import Compiled, Constraints, Flags
+from liblaf.pretty.compile import CompileContext, Constraints, Flags
 
 from ._base import Layout, Lowered
-from ._context import CompileContext
 from ._item import LoweredItem
 
 
 @attrs.frozen
-class Group(Lowered):
+class LoweredGroup(Lowered):
     children: Sequence[LoweredItem]
 
+    @functools.cached_property
     @override
-    def layouts(self) -> Generator[Layout]:
-        yield GroupFlat(self)
-        yield GroupBreak(self)
+    def layouts(self) -> Sequence[Layout]:
+        return [LoweredGroupFlat(self), LoweredGroupBreak(self)]
+
+    @override
+    def append(self, text: Text) -> Self:
+        raise NotImplementedError
 
 
 @attrs.frozen
-class GroupFlat(Layout):
-    wrapped: Group
+class LoweredGroupFlat(Layout):
+    wrapped: LoweredGroup
 
-    @override
-    def compile(self, ctx: CompileContext) -> Compiled:
-        compiled: Compiled = Compiled()
-        for child in self.wrapped.children:
-            for layout in child.wrapped.filter_layouts(Constraints.INLINE):
-                compiled += layout.compile(ctx) + ctx.render(child.separator)
-                break
-        return compiled
-
+    @functools.cached_property
     @override
     def flags(self) -> Flags:
-        return Flags(multiline=False)
+        return Flags.INLINE
+
+    @override
+    def print(self, ctx: CompileContext) -> None:
+        for child in self.wrapped.children:
+            child.wrapped.print(ctx, Constraints.INLINE)
+            ctx.print(child.break_)
 
     @override
     def satisfies(self, constraints: Constraints) -> bool:
@@ -46,21 +49,20 @@ class GroupFlat(Layout):
 
 
 @attrs.frozen
-class GroupBreak(Layout):
-    wrapped: Group
+class LoweredGroupBreak(Layout):
+    wrapped: LoweredGroup
 
-    @override
-    def compile(self, ctx: CompileContext) -> Compiled:
-        compiled: Compiled = Compiled()
-        for child in self.wrapped.children:
-            for layout in child.wrapped.filter_layouts(Constraints.BLOCK):
-                compiled += layout.compile(ctx) + "\n"
-                break
-        return compiled
-
+    @functools.cached_property
     @override
     def flags(self) -> Flags:
-        return Flags(multiline=True)
+        return Flags.BLOCK
+
+    @override
+    def print(self, ctx: CompileContext) -> None:
+        for i, child in enumerate(self.wrapped.children):
+            child.wrapped.print(ctx, Constraints.BLOCK)
+            if i < len(self.wrapped.children) - 1:
+                ctx.newline()
 
     @override
     def satisfies(self, constraints: Constraints) -> bool:

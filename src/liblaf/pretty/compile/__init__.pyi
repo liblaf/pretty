@@ -1,4 +1,13 @@
-from ._compiled import Compiled, Segments
 from ._constraints import Constraints, Flags
+from ._context import CompileContext, CompileContextSnapshot, Compiled
+from ._segments import Prefix, Segments
 
-__all__ = ["Compiled", "Constraints", "Flags", "Segments"]
+__all__ = [
+    "CompileContext",
+    "CompileContextSnapshot",
+    "Compiled",
+    "Constraints",
+    "Flags",
+    "Prefix",
+    "Segments",
+]

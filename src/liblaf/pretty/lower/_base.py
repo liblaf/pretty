@@ -1,38 +1,64 @@
 import abc
-from collections.abc import Iterable
+import functools
+from collections.abc import Iterable, Sequence
+from typing import Self
 
-from liblaf.pretty.compile import Compiled, Constraints, Flags
+import attrs
+from rich.text import Text
 
-from ._context import CompileContext
+from liblaf.pretty.compile import CompileContext, Compiled, Constraints, Flags
 
 
+@attrs.frozen
 class Layout(abc.ABC):
-    @abc.abstractmethod
-    def compile(self, ctx: CompileContext) -> Compiled: ...
-
+    @functools.cached_property
     @abc.abstractmethod
     def flags(self) -> Flags: ...
 
+    def preview(self, ctx: CompileContext) -> Compiled:
+        ctx: CompileContext = ctx.clone()
+        with ctx.capture() as capture:
+            self.print(ctx)
+        return capture.get()
+
+    @abc.abstractmethod
+    def print(self, ctx: CompileContext) -> None: ...
+
     def satisfies(self, constraints: Constraints) -> bool:
-        return constraints.allow(self.flags())
+        return constraints.allow(self.flags)
 
 
+@attrs.frozen
 class Lowered(abc.ABC):
-    def compile(self, ctx: CompileContext) -> Compiled | None:
-        compiled: Compiled | None = None
-        for layout in self.filter_layouts(ctx.constraints):
-            compiled: Compiled = layout.compile(ctx)
-            if ctx.fits(compiled):
-                return compiled
-        return compiled
+    @abc.abstractmethod
+    @functools.cached_property
+    def layouts(self) -> Sequence[Layout]: ...
+
+    @abc.abstractmethod
+    def append(self, text: Text) -> Self: ...
+
+    def print(
+        self, ctx: CompileContext, constraints: Constraints = Constraints.BLOCK
+    ) -> None:
+        for layout in self.filter_layouts(constraints):
+            compiled: Compiled = layout.preview(ctx)
+            if compiled.fits:
+                ctx.commit(compiled)
+                return
+        ctx.commit(compiled)
 
     def filter_layouts(self, constraints: Constraints) -> Iterable[Layout]:
-        for layout in self.layouts():
+        for layout in self.layouts:
             if layout.satisfies(constraints):
                 yield layout
 
-    @abc.abstractmethod
-    def layouts(self) -> Iterable[Layout]: ...
+    def preview(
+        self, ctx: CompileContext, constraints: Constraints = Constraints.BLOCK
+    ) -> Compiled:
+        ctx: CompileContext = ctx.clone()
+        with ctx.capture() as capture:
+            self.print(ctx, constraints)
+        return capture.get()
 
     def satisfies(self, constraints: Constraints) -> bool:
         for _ in self.filter_layouts(constraints):
