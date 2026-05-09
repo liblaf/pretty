@@ -18,6 +18,7 @@ class TracedContainer(Traced):
     doc: TracedItems
     end: Text
     indent: Text = attrs.field(kw_only=True)
+    hide_typename: bool = attrs.field(default=False, kw_only=True)
     has_ref: bool = attrs.field(default=False, kw_only=True)
     identifier: Identifier = attrs.field(kw_only=True)
 
@@ -31,18 +32,21 @@ class TracedContainer(Traced):
     @override
     def lower(self, ctx: LowerContext) -> Lowered:
         comment: Text = ctx.make_comment(self.identifier) if self.has_ref else EMPTY
-        typename: str = ctx.get_tag_typename(self.identifier.cls)
+        if self.hide_typename:
+            begin_parts: list[tuple[str, str]] = [
+                (ctx.get_tag_typename(self.identifier.cls), "repr.tag_name")
+            ]
+        else:
+            begin_parts: list[tuple[str, str]] = []
         if self.doc.empty:
-            return LoweredLeaf(
-                Text.assemble((typename, "repr.tag_name"), self.empty), comment=comment
-            )
-        begin: Text = Text.assemble((typename, "repr.tag_name"), self.begin)
+            return LoweredLeaf(Text.assemble(*begin_parts, self.empty), comment=comment)
         if self.doc.truncated:
             return LoweredLeaf(
-                Text.assemble(begin, ELLIPSIS, self.end), comment=comment
+                Text.assemble(*begin_parts, self.begin, ELLIPSIS, self.end),
+                comment=comment,
             )
         return LoweredContainer(
-            begin=begin,
+            begin=Text.assemble(*begin_parts, self.begin),
             doc=self.doc.lower(ctx),
             end=self.end,
             indent=self.indent,

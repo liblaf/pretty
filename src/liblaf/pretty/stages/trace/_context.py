@@ -15,6 +15,6 @@ class LowerContext:
     def make_comment(self, identifier: Identifier) -> Text:
         assert identifier.cls is not None
         return Text(
-            f"<{self.get_ref_typename(identifier.cls)} @ {identifier.path.__rich__().plain}>",
+            f"# <{self.get_ref_typename(identifier.cls)} @ {identifier.path.__rich__().plain}>",
             "dim",
         )
