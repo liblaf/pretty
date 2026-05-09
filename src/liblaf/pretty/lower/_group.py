@@ -22,7 +22,9 @@ class LoweredGroup(Lowered):
 
     @override
     def append(self, text: Text) -> Self:
-        raise NotImplementedError
+        return attrs.evolve(
+            self, children=[*self.children[:-1], self.children[-1].append(text)]
+        )
 
 
 @attrs.frozen
@@ -38,7 +40,7 @@ class LoweredGroupFlat(Layout):
     def print(self, ctx: CompileContext) -> None:
         for child in self.wrapped.children:
             child.wrapped.print(ctx, Constraints.INLINE)
-            ctx.print(child.break_)
+            ctx.print(child.flat_break)
 
     @override
     def satisfies(self, constraints: Constraints) -> bool:

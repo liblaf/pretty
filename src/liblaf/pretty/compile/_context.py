@@ -48,7 +48,7 @@ class CompileContext:
     @property
     def options(self) -> ConsoleOptions:
         return self._options.update(
-            max_width=self._options.max_width - self.prefix.width
+            max_width=max(self._options.max_width - self.prefix.width, 1)
         )
 
     def capture(self) -> Capture:
