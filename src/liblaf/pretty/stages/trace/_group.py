@@ -14,4 +14,5 @@ class TracedGroup(TracedItems):
             return LoweredLiteral(EMPTY)
         if self.truncated:
             return LoweredLiteral(ELLIPSIS)
+        assert isinstance(self.children, list)
         return LoweredGroup([child.lower(ctx) for child in self.children])

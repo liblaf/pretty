@@ -6,6 +6,7 @@ import attrs
 from rich.text import Text
 
 
+@attrs.frozen
 class KeyEntry(abc.ABC):
     @abc.abstractmethod
     def __rich__(self) -> Text: ...
@@ -22,6 +23,7 @@ class KeyPath:
         return Text.assemble(*[entry.__rich__() for entry in self.entries])
 
 
+@attrs.frozen
 class DictKey(KeyEntry):
     key: Text
 
@@ -29,6 +31,7 @@ class DictKey(KeyEntry):
         return Text.assemble("[", self.key, "]")
 
 
+@attrs.frozen
 class DictKeyKey(KeyEntry):
     def __rich__(self) -> Text:
         return Text.assemble(
@@ -36,11 +39,13 @@ class DictKeyKey(KeyEntry):
         )
 
 
+@attrs.frozen
 class DictValueKey(KeyEntry):
     def __rich__(self) -> Text:
         return Text()
 
 
+@attrs.frozen
 class GetAttrKey(KeyEntry):
     name: str
 
@@ -48,6 +53,7 @@ class GetAttrKey(KeyEntry):
         return Text.assemble(".", (self.name, "repr.attrib_name"))
 
 
+@attrs.frozen
 class SequenceKey(KeyEntry):
     index: int
 
@@ -55,6 +61,7 @@ class SequenceKey(KeyEntry):
         return Text.assemble("[", (str(self.index), "repr.number"), "]")
 
 
+@attrs.frozen
 class VarKey(KeyEntry):
     name: str
 

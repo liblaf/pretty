@@ -1,7 +1,7 @@
 import attrs
 from rich.text import Text
 
-from liblaf.pretty.common import TRUNCATED
+from liblaf.pretty.common import TRUNCATED, TruncatedType
 from liblaf.pretty.stages.lower import LoweredItem
 
 from ._base import Traced
@@ -28,12 +28,12 @@ class TracedItem(Traced):
 
 @attrs.define
 class TracedItems(Traced):
-    children: list[TracedItem]
+    children: list[TracedItem] | TruncatedType
 
     @property
     def empty(self) -> bool:
-        return len(self.children) == 0
+        return isinstance(self.children, list) and len(self.children) == 0
 
     @property
     def truncated(self) -> bool:
-        return len(self.children) == 1 and self.children[0] is TRUNCATED
+        return self.children is TRUNCATED

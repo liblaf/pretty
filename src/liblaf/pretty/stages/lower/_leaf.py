@@ -56,7 +56,7 @@ class LoweredLeafFlat(Layout):
             case CommentLayout.AFTER:
                 return Flags(multiline=False, break_after=True)
             case CommentLayout.BEFORE:
-                return Flags(multiline=False, break_before=True)
+                return Flags(multiline=True, break_before=True)
 
     @override
     def print(self, ctx: CompileContext) -> None:

@@ -40,11 +40,14 @@ class Lowered(abc.ABC):
     def print(
         self, ctx: CompileContext, constraints: Constraints = Constraints.BLOCK
     ) -> None:
+        compiled: Compiled | None = None
         for layout in self.filter_layouts(constraints):
             compiled: Compiled = layout.preview(ctx)
             if compiled.fits:
                 ctx.commit(compiled)
                 return
+        if compiled is None:
+            raise ValueError(constraints)
         ctx.commit(compiled)
 
     def filter_layouts(self, constraints: Constraints) -> Iterable[Layout]:

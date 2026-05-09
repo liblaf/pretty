@@ -33,11 +33,11 @@ class TracedContainer(Traced):
     def lower(self, ctx: LowerContext) -> Lowered:
         comment: Text = ctx.make_comment(self.identifier) if self.has_ref else EMPTY
         if self.hide_typename:
+            begin_parts: list[tuple[str, str]] = []
+        else:
             begin_parts: list[tuple[str, str]] = [
                 (ctx.get_tag_typename(self.identifier.cls), "repr.tag_name")
             ]
-        else:
-            begin_parts: list[tuple[str, str]] = []
         if self.doc.empty:
             return LoweredLeaf(Text.assemble(*begin_parts, self.empty), comment=comment)
         if self.doc.truncated:
