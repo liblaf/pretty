@@ -5,7 +5,7 @@ from typing import Self, override
 import attrs
 from rich.text import Text
 
-from liblaf.pretty.compile import CompileContext, Constraints, Flags
+from liblaf.pretty.stages.compile import CompileContext, Constraints, Flags
 
 from ._base import Layout, Lowered
 from ._item import LoweredItem
@@ -17,7 +17,7 @@ class LoweredGroup(Lowered):
 
     @functools.cached_property
     @override
-    def layouts(self) -> Sequence[Layout]:
+    def layouts(self) -> list[Layout]:
         return [LoweredGroupFlat(self), LoweredGroupBreak(self)]
 
     @override
@@ -40,7 +40,7 @@ class LoweredGroupFlat(Layout):
     def print(self, ctx: CompileContext) -> None:
         for child in self.wrapped.children:
             child.wrapped.print(ctx, Constraints.INLINE)
-            ctx.print(child.flat_break)
+            ctx.print(child.flat_gap)
 
     @override
     def satisfies(self, constraints: Constraints) -> bool:

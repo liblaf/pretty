@@ -6,7 +6,7 @@ from typing import Self
 import attrs
 from rich.text import Text
 
-from liblaf.pretty.compile import CompileContext, Compiled, Constraints, Flags
+from liblaf.pretty.stages.compile import CompileContext, Compiled, Constraints, Flags
 
 
 @attrs.frozen

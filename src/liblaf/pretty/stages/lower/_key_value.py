@@ -1,11 +1,10 @@
 import functools
-from collections.abc import Sequence
 from typing import override
 
 import attrs
 from rich.text import Text
 
-from liblaf.pretty.compile import CompileContext, Constraints, Flags
+from liblaf.pretty.stages.compile import CompileContext, Constraints, Flags
 
 from ._base import Layout, Lowered
 
@@ -18,7 +17,7 @@ class LoweredKeyValue(Lowered):
 
     @functools.cached_property
     @override
-    def layouts(self) -> Sequence[Layout]:
+    def layouts(self) -> list[Layout]:
         return [LoweredKeyValueFlat(self), LoweredKeyValueBreak(self)]
 
     @override

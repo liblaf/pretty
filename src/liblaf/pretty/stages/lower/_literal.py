@@ -1,12 +1,11 @@
 import functools
-from collections.abc import Sequence
 from typing import override
 
 import attrs
 from rich.containers import Lines
 from rich.text import Text
 
-from liblaf.pretty.compile import CompileContext, Flags
+from liblaf.pretty.stages.compile import CompileContext, Flags
 
 from ._base import Layout, Lowered
 
@@ -17,7 +16,7 @@ class LoweredLiteral(Lowered):
 
     @functools.cached_property
     @override
-    def layouts(self) -> Sequence[Layout]:
+    def layouts(self) -> list[Layout]:
         return [LoweredLiteralLayout(self)]
 
     @functools.cached_property

@@ -5,8 +5,8 @@ from typing import Self, override
 import attrs
 from rich.text import Text
 
-from liblaf.pretty.compile import CompileContext, Constraints, Flags
 from liblaf.pretty.literals import COMMENT_GAP
+from liblaf.pretty.stages.compile import CompileContext, Constraints, Flags
 
 from ._base import Layout, Lowered
 from ._comment import CommentLayout
@@ -22,7 +22,7 @@ class LoweredContainer(Lowered):
 
     @functools.cached_property
     @override
-    def layouts(self) -> Sequence[Layout]:
+    def layouts(self) -> list[Layout]:
         comment_layouts: Sequence[CommentLayout] = CommentLayout.filter_layouts(
             self.comment
         )
