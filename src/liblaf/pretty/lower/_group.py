@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
 from typing import override
 
 import attrs
@@ -14,7 +14,13 @@ from ._item import LoweredItem
 class Group(Lowered):
     children: Sequence[LoweredItem]
 
+    @override
+    def layouts(self) -> Generator[Layout]:
+        yield GroupFlat(self)
+        yield GroupBreak(self)
 
+
+@attrs.frozen
 class GroupFlat(Layout):
     wrapped: Group
 
@@ -35,5 +41,30 @@ class GroupFlat(Layout):
     def satisfies(self, constraints: Constraints) -> bool:
         return super().satisfies(constraints) and all(
             child.wrapped.satisfies(Constraints.INLINE)
+            for child in self.wrapped.children
+        )
+
+
+@attrs.frozen
+class GroupBreak(Layout):
+    wrapped: Group
+
+    @override
+    def compile(self, ctx: CompileContext) -> Compiled:
+        compiled: Compiled = Compiled()
+        for child in self.wrapped.children:
+            for layout in child.wrapped.filter_layouts(Constraints.BLOCK):
+                compiled += layout.compile(ctx) + "\n"
+                break
+        return compiled
+
+    @override
+    def flags(self) -> Flags:
+        return Flags(multiline=True)
+
+    @override
+    def satisfies(self, constraints: Constraints) -> bool:
+        return super().satisfies(constraints) and all(
+            child.wrapped.satisfies(Constraints.BLOCK)
             for child in self.wrapped.children
         )

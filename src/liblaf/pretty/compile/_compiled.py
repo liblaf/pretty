@@ -53,8 +53,10 @@ class Compiled:
             break_before=break_before,
         )
 
-    def __add__(self, other: Segment | Iterable[Segment] | Self) -> Self:
-        if isinstance(other, Segment):
+    def __add__(self, other: str | Segment | Iterable[Segment] | Self) -> Self:
+        if isinstance(other, str):
+            other: Self = self.from_segments([Segment(other)])
+        elif isinstance(other, Segment):
             other: Self = self.from_segments([other])
         elif isinstance(other, Iterable) and not isinstance(other, Compiled):
             other: Self = self.from_segments(other)
